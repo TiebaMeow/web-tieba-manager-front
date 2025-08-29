@@ -8,6 +8,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CollapseColumnItem: typeof import('./src/components/CollapseItem/CollapseColumnItem.vue')['default']
+    CollapseItem: typeof import('./src/components/CollapseItem/CollapseItem.vue')['default']
+    CollapseRowItem: typeof import('./src/components/CollapseItem/CollapseRowItem.vue')['default']
+    CustomStatistic: typeof import('./src/components/CustomStatistic.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
@@ -19,6 +23,7 @@ declare module 'vue' {
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
+    ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     IEpExpand: typeof import('~icons/ep/expand')['default']
@@ -29,6 +34,7 @@ declare module 'vue' {
     IEpQuestionFIlled: typeof import('~icons/ep/question-f-illed')['default']
     IEpSwitch: typeof import('~icons/ep/switch')['default']
     IEpSwitchButton: typeof import('~icons/ep/switch-button')['default']
+    NumberInput: typeof import('./src/components/NumberInput.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

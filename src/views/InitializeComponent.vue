@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import message from '@/lib/message';
 import Requests from '@/lib/request';
-import NumberInput from '@/conponents/NumberInput.vue';
+import NumberInput from '@/components/NumberInput.vue';
 import router from '@/router';
 
 const request = new Requests({

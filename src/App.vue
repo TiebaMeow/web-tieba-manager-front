@@ -7,6 +7,7 @@ import { deleteHost, sequenceHistoryHosts, switchHostByHistory } from './lib/dat
 import router from './router';
 import TokenRequest from './lib/token';
 import { DIALOG_WIDTH } from './lib/constance';
+import SideBar from './views/SideBar.vue';
 
 const route = useRoute()
 
@@ -39,7 +40,13 @@ function logout(deleteHistory: boolean = false) {
 
 function handleDeleteHost(host: string) {
     if (TokenRequest.host === host) {
-        logout(true)
+        message.confirm(
+            '即将删除并登出正在使用的服务', '提示',
+            () => {
+                logout(true)
+                ifShowSwitch.value = false
+            }
+        )
     } else {
         deleteHost(host)
     }
@@ -98,7 +105,15 @@ function handleSwitchHost(host: string) {
             </div>
         </div>
     </div>
-    <router-view />
+    <div v-if="isDashboardRoute" style="display: flex; height: calc(100vh - 50px);">
+        <SideBar v-model="ifShowSidebar" />
+        <el-scrollbar style="height: 100%; width: 100%; padding: 0 20px">
+            <div style="display: flex; justify-content: center; width: calc(100%-40px); margin: 20px 20px 0 20px;">
+                <RouterView />
+            </div>
+        </el-scrollbar>
+    </div>
+    <router-view v-else />
 </template>
 <style>
 html,

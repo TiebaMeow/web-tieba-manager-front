@@ -1,10 +1,21 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 
-const DashboardRouted: RouteRecordRaw[] = [
+
+type DashboardRouteRecordRaw = RouteRecordRaw & {
+    meta: {
+        title?: string
+        hide?: boolean
+    }
+}
+
+export const DashboardRoutes: DashboardRouteRecordRaw[] = [
     {
         path: '/home',
         name: 'home',
-        component: () => import('../views/DashboardComponent.vue')
+        meta: {
+            title: '主页'
+        },
+        component: () => import('../views/dashboard/DashboardComponent.vue')
     }
 ]
 
@@ -22,7 +33,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/dashboard',
         name: 'dashboard',
-        children: DashboardRouted
+        children: DashboardRoutes
     }
 ]
 

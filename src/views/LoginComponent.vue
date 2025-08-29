@@ -37,7 +37,7 @@ async function login() {
     try {
         await TokenRequest.login('/api/login', loginForm.value.username, loginForm.value.password, loginForm.value.key)
         message.notify('登录成功。', message.success)
-        router.push('/dashboard')
+        router.push('/home')
     } catch (error) {
         if (error instanceof AxiosError) {
             switch (error.response?.status) {
