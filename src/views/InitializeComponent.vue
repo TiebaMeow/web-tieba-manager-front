@@ -4,6 +4,7 @@ import message from '@/lib/message';
 import Requests from '@/lib/request';
 import NumberInput from '@/components/NumberInput.vue';
 import router from '@/router';
+import { sys } from 'typescript';
 
 const request = new Requests({
     host: 'http://127.0.0.1:36799'
@@ -84,6 +85,19 @@ function initialize() {
         data
     }).then(() => {
         message.notify('初始化成功，正在转跳...', message.success)
+        const params: string[] = []
+        if (userForm.value.password) {
+            params.push(`username=${userForm.value.username}`)
+            params.push(`password=${userForm.value.password}`)
+        }
+        if (systemForm.value.port.toString() !== location.port) {
+            params.push(`host=${location.protocol}//${location.hostname}:${systemForm.value.port}`)
+        }
+        if (params.length) {
+            router.push('/login?' + params.join('&'))
+        } else {
+            router.push('/login')
+        }
     }).catch((err) => {
         console.log(err)
         if (err.status == 422) {
