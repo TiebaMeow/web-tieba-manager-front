@@ -25,9 +25,9 @@ const isDashboardRoute = computed(() => {
 })
 
 
-function logout(deleteHistory: boolean = false) {
+function logout(deleteHistory: boolean = false, text: string = '即将登出') {
     message.confirm(
-        '即将登出', '提示',
+        text, '提示',
         () => {
             if (deleteHistory) {
                 deleteHost(TokenRequest.host)
@@ -40,13 +40,7 @@ function logout(deleteHistory: boolean = false) {
 
 function handleDeleteHost(host: string) {
     if (TokenRequest.host === host) {
-        message.confirm(
-            '即将删除并登出正在使用的服务', '提示',
-            () => {
-                logout(true)
-                ifShowSwitch.value = false
-            }
-        )
+        logout(true, '即将删除并登出正在使用的服务')
     } else {
         deleteHost(host)
     }
@@ -61,7 +55,6 @@ function handleSwitchHost(host: string) {
 
 <template>
     <el-dialog v-model="ifShowSwitch" title="请选择服务" :width="Math.min(DIALOG_WIDTH, 500)">
-        {{ sequenceHistoryHosts }}
         <el-table :data="sequenceHistoryHosts">
             <el-table-column prop="host" label="服务">
                 <template #default="scope">
