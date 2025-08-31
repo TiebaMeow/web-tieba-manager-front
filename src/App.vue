@@ -32,6 +32,9 @@ function logout(deleteHistory: boolean = false, text: string = '即将登出') {
             if (deleteHistory) {
                 deleteHost(TokenRequest.host)
             }
+            if (ifShowSwitch.value) {
+                ifShowSwitch.value = false
+            }
             router.push('/login')
             saveData('access_token', '')
         }

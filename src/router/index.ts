@@ -15,7 +15,7 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         meta: {
             title: '主页'
         },
-        component: () => import('../views/dashboard/DashboardComponent.vue')
+        component: () => import('../views/dashboard/DashboardHome.vue')
     }
 ]
 

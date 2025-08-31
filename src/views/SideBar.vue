@@ -4,11 +4,15 @@ import CollapseItem from '@/components/CollapseItem';
 import { useRoute } from 'vue-router';
 import router, { DashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
+import { getHomeInfo } from '@/lib/data/common';
+import { historyHosts } from '@/lib/data/hostManager';
+import TokenRequest from '@/lib/token';
 
 
 const ifShow = defineModel<boolean>()
 const route = useRoute()
 const viewMode = getViewMode(900)
+const homeInfo = getHomeInfo()
 
 
 function getHost() {
@@ -34,7 +38,11 @@ function goto(url: string) {
                 </div>
                 <div class="sidebar">
                     <div class="title">
-                        {{ getHost() }}
+                        {{ getHost() }}<br/>
+                        {{ historyHosts[TokenRequest.host].user }}
+                        <template v-if="homeInfo && homeInfo.forum">
+                            #{{ homeInfo.forum }}
+                        </template>
                     </div>
                     <div v-for="routeRaw in DashboardRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
