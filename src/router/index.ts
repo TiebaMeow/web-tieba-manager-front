@@ -16,6 +16,14 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
             title: '主页'
         },
         component: () => import('../views/dashboard/DashboardHome.vue')
+    },
+    {
+        path: '/user_config',
+        name: 'user_config',
+        meta: {
+            title: '设置'
+        },
+        component: () => import('../views/dashboard/UserConfig.vue')
     }
 ]
 
