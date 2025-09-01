@@ -11,27 +11,13 @@ interface HomeInfo {
         nick_name: string
     } | null
 }
-/*
-undefined: 未加载
-null: 正在加载
-false: 加载失败
-*/
-const homeInfo = ref<HomeInfo | false | undefined | null>(undefined)
+
+const homeInfo = ref<RefResponse<HomeInfo>>(undefined)
 
 async function fetchHomeInfo() {
-    try {
-        homeInfo.value = null
-        const response = await TokenRequest.get<BaseResponse<HomeInfo>>({
-            url: '/api/user/info'
-        })
-        if (response.data.code === 200) {
-            homeInfo.value = response.data.data
-        } else {
-            homeInfo.value = false
-        }
-    } catch {
-        homeInfo.value = false
-    }
+    await TokenRequest.fetch(homeInfo, {
+        url: '/api/user/info'
+    })
 }
 
 

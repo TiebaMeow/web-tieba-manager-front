@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { AxiosResponse, Canceler } from 'axios'
+import type { Ref } from 'vue'
 
 import { getData } from './utils'
 
@@ -67,5 +68,21 @@ export default class Requests {
 
     async post<T>(options: RequestsOptions): Promise<AxiosResponse<T>> {
         return await this.httpRequests<T>('POST', options)
+    }
+
+    async fetch<T>(r: Ref<RefResponse<T>>, options: RequestsOptions, method: 'get' | 'post' = 'get'): Promise<boolean> {
+        try {
+            r.value = null
+            const response = await this.httpRequests<BaseResponse<Exclude<T, null | undefined | false>>>(method, options)
+            if (response.data.code === 200) {
+                r.value = response.data.data
+                return true
+            } else {
+                r.value = false
+            }
+        } catch {
+            r.value = false
+        }
+        return false
     }
 }
