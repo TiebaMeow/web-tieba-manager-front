@@ -38,11 +38,9 @@ function goto(url: string) {
                 </div>
                 <div class="sidebar">
                     <div class="title">
-                        {{ getHost() }}<br/>
-                        {{ historyHosts[TokenRequest.host].user }}
-                        <template v-if="homeInfo && homeInfo.forum">
-                            #{{ homeInfo.forum }}
-                        </template>
+                        {{ getHost() }}<br />
+                        {{ historyHosts[TokenRequest.host].user }}<template v-if="homeInfo && homeInfo.forum">@{{
+                            homeInfo.forum }}</template>
                     </div>
                     <div v-for="routeRaw in DashboardRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
@@ -81,14 +79,15 @@ function goto(url: string) {
 }
 
 .title {
+    width: 250px;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     padding: 5px 0;
     border-bottom: 1px solid var(--bolder-color);
-    width: 100%;
     font-size: 20px;
+    word-break: break-all;
 
 }
 

@@ -47,7 +47,7 @@ function deleteHost(host: string) {
 
 function setForum(host: string, forum: string) {
     if (hasOwn(historyHosts.value, host)) {
-        historyHosts.value.host.forum = forum
+        historyHosts.value[host].forum = forum
         saveHistoryHosts();
     }
 }

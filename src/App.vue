@@ -65,9 +65,7 @@ function handleSwitchHost(host: string) {
                         {{ scope.row.host }}
                         <template v-if="scope.row.forum || scope.row.user">
                             <br />
-                            {{ scope.row.user }}
-                            <template v-if="scope.row.forum">
-                                @{{ scope.row.forum }}
+                            {{ scope.row.user }}<template v-if="scope.row.forum">@{{ scope.row.forum }}
                             </template>
                         </template>
                     </div>
