@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { getData } from '@/lib/utils';
 import CollapseItem from '@/components/CollapseItem';
-import { useRoute } from 'vue-router';
-import router, { DashboardRoutes } from '@/router';
+import { useRoute, useRouter } from 'vue-router';
+import { DashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';
 import { historyHosts } from '@/lib/data/hostManager';
 import TokenRequest from '@/lib/token';
 
-
-const ifShow = defineModel<boolean>()
 const route = useRoute()
+const router = useRouter()
+const ifShow = defineModel<boolean>()
 const viewMode = getViewMode(900)
 const homeInfo = getHomeInfo()
 

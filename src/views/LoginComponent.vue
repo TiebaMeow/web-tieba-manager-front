@@ -4,9 +4,10 @@ import TokenRequest from '@/lib/token';
 import message from '@/lib/message';
 import { getData } from '@/lib/utils';
 import { AxiosError } from 'axios';
-import router from '@/router'
+import { useRoute, useRouter } from 'vue-router';
 
-const query = router.currentRoute.value.query
+const router = useRouter()
+const query = useRoute().query
 const loginForm = ref<{
     host: string,
     username: string,

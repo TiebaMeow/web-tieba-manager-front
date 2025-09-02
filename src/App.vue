@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { getViewMode, saveData } from './lib/utils';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import message from './lib/message';
 import { deleteHost, sequenceHistoryHosts, switchHostByHistory } from './lib/data/hostManager';
-import router from './router';
 import TokenRequest from './lib/token';
 import { DIALOG_WIDTH } from './lib/constance';
 import SideBar from './views/SideBar.vue';
 
 const route = useRoute()
+const router = useRouter()
 
 const ifShowSidebar = ref(!(getViewMode(900) === 'mobile'))
 const ifShowSwitch = ref(false)

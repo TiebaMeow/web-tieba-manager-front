@@ -3,8 +3,9 @@ import { ref } from 'vue';
 import message from '@/lib/message';
 import Requests from '@/lib/request';
 import NumberInput from '@/components/NumberInput.vue';
-import router from '@/router';
+import { useRouter } from 'vue-router';
 
+const router = useRouter()
 const request = new Requests({
     host: 'http://127.0.0.1:36799'
 })
