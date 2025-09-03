@@ -1,6 +1,7 @@
 <script setup lang=ts>
 import message from '@/lib/message'
 import TokenRequest from '@/lib/token'
+import { fetchHomeInfo } from '@/lib/data/common'
 import { ref } from 'vue'
 
 interface ForumConfig {
@@ -42,6 +43,7 @@ async function setUserConfig() {
     })
     if (response.data.code === 200) {
         message.notify('保存成功', message.success)
+        fetchHomeInfo()
     } else {
         message.notify('保存失败', message.error)
     }
@@ -53,7 +55,7 @@ async function setUserConfig() {
     <div style="max-width: 1000px; flex-grow: 1;" v-if="userConfig">
         <div style="max-width: 600px;">
             <div>
-                <h3>贴吧配置</h3>
+                <h3>贴吧设置</h3>
                 <el-form label-width="auto">
                     <el-form-item label="扫描贴吧">
                         <el-input v-model="userConfig.forum.fname"></el-input>
