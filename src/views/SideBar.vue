@@ -27,6 +27,8 @@ function goto(url: string) {
     }
 }
 
+const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
+
 </script>
 
 <template>
@@ -42,7 +44,7 @@ function goto(url: string) {
                         {{ historyHosts[TokenRequest.host].user }}<template v-if="homeInfo && homeInfo.forum">@{{
                             homeInfo.forum }}</template>
                     </div>
-                    <div v-for="routeRaw in DashboardRoutes" :key="routeRaw.name" class="bar"
+                    <div v-for="routeRaw in visibleRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
                         @click="goto(routeRaw.path)">
                         {{ routeRaw.meta.title }}
