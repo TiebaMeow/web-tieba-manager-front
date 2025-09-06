@@ -70,7 +70,7 @@ async function login() {
             <template #header>
                 <span>连接到WTM服务</span>
             </template>
-            <el-form :model="loginForm" label-position="lfet" label-width="auto">
+            <el-form :model="loginForm" label-width="auto">
                 <el-form-item label="服务地址">
                     <el-input v-model="loginForm.host" placeholder="请填写服务地址" clearable />
                 </el-form-item>
