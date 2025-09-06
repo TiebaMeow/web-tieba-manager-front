@@ -18,13 +18,53 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/dashboard/DashboardHome.vue')
     },
     {
-        path: '/user_config',
-        name: 'user_config',
+        path: '/user-config',
+        name: 'userConfig',
         meta: {
             title: '设置'
         },
         component: () => import('../views/dashboard/UserConfig.vue')
-    }
+    },
+    {
+        path: '/rule-sets',
+        name: 'ruleSets',
+        meta: {
+            title: '违规规则'
+        },
+        component: () => import('../views/dashboard/RuleSets.vue')
+    },
+    {
+        path: '/whitelist-rule-sets',
+        name: 'whitelistRuleSets',
+        meta: {
+            title: '信任规则'
+        },
+        component: () => import('../views/dashboard/RuleSets.vue')
+    },
+    {
+        path: '/rule-sets/:id(\\d+)',
+        name: 'ruleSetDetail',
+        meta: {
+            hide: true
+        },
+        component: () => import('../views/dashboard/EditRuleSet.vue'),
+    },
+    {
+        path: '/rule-sets/new',
+        name: 'newRuleSet',
+        meta: {
+            hide: true
+        },
+        component: () => import('../views/dashboard/EditRuleSet.vue')
+    },
+    {
+        path: '/whitelist-rule-sets/new',
+        name: 'newWhitelistRuleSet',
+        meta: {
+            hide: true
+        },
+        component: () => import('../views/dashboard/EditRuleSet.vue')
+    },
 ]
 
 const routes: RouteRecordRaw[] = [
