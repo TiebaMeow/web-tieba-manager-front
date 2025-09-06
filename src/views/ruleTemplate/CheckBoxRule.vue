@@ -2,13 +2,13 @@
 import { ruleInfoDict, type Rule } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
-interface CheckBoxRule extends Rule {
+interface CheckboxRule extends Rule {
     options: {
         values: string[]
     }
 }
 
-const data = defineModel<CheckBoxRule>();
+const data = defineModel<CheckboxRule>();
 const emit = defineEmits<{
     delete: [void]
     change: [void]
