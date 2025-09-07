@@ -35,9 +35,6 @@ const AutoRefresh = new class AutoRefresh {
             return 100 * this.curr_time.value / this.INTERVAL.value
         })
         this.loop()
-        onUnmounted(() => {
-            this.stop = true
-        })
     }
 
     loop() {
@@ -54,6 +51,9 @@ const AutoRefresh = new class AutoRefresh {
         setTimeout(() => this.loop(), 1000)
     }
 }
+onUnmounted(() => {
+    AutoRefresh.stop = true
+})
 
 function clearConfirmSelected() {
     confirmSelectedDict.value = {};
