@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import type { Ref, ComputedRef } from 'vue'
 
 import TokenRequest, { SwitchHostEvent } from '@/lib/token';
@@ -24,16 +24,20 @@ const AutoRefresh = new class AutoRefresh {
     curr_time: Ref<number>
     enable: Ref<boolean>
     percentage: ComputedRef<number>
-
+    stop: boolean // 用于停止循环
 
     constructor() {
         this.INTERVAL = ref(60)
         this.curr_time = ref(0)
         this.enable = ref(true)
+        this.stop = false
         this.percentage = computed(() => {
             return 100 * this.curr_time.value / this.INTERVAL.value
         })
         this.loop()
+        onUnmounted(() => {
+            this.stop = true
+        })
     }
 
     loop() {
@@ -43,6 +47,9 @@ const AutoRefresh = new class AutoRefresh {
             if (this.enable.value) {
                 fetchConfirmList()
             }
+        }
+        if (this.stop) {
+            return
         }
         setTimeout(() => this.loop(), 1000)
     }
