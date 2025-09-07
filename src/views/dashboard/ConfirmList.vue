@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { Ref, ComputedRef } from 'vue'
-import { useRouter } from 'vue-router';
 
 import TokenRequest, { SwitchHostEvent } from '@/lib/token';
 import { formatDate, getContentMark } from '@/lib/utils';
 import message from '@/lib/message';
 import { gotoPost, gotoPortrait } from '@/lib/utils';
 import { DIALOG_WIDTH } from '@/lib/constance';
-
-const router = useRouter()
-
 
 interface ConfirmData {
     content: Thread | Post | Comment
