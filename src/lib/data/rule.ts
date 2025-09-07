@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 import TokenRequest from '../token'
 import message from '../message'
 import { AxiosError } from 'axios'
-import type { Operation } from './operation'
+import type { OperationGroup } from './operation'
 
 
 interface RuleInfo {
@@ -68,7 +68,7 @@ interface RuleSet {
     manual_confirm: boolean
     last_modify: number
     whitelist: boolean
-    operations: 'ignore' | 'delete' | 'block' | 'delete_and_block' | Operation[] | 'custom' // note custom 仅用作网页操作，服务端并不接受此值
+    operations: OperationGroup
     rules: Rule[]
 }
 

@@ -13,12 +13,13 @@ interface ForumConfig {
     thread: boolean
     post: boolean
     comment: boolean
-    content_validate_expire: number
 }
 
 interface ProcessConfig {
     mandatory_confirm: boolean
     fast_process: boolean
+    confirm_expire: number
+    content_validate_expire: number
 }
 
 interface UserConfig {
@@ -109,15 +110,30 @@ async function setUserConfig() {
                         <el-checkbox v-model="userConfig.forum.comment" label="楼中楼"></el-checkbox>
                     </el-form-item>
                     <el-form-item label="处理有效期">
-                        <el-input-number style="width: 165px;" v-model="userConfig.forum.content_validate_expire"
-                            number>
+                        <el-input-number style="width: 120px;" v-model="userConfig.process.content_validate_expire"
+                            :controls="false">
                             <template #suffix>
                                 <span>
                                     秒
                                 </span>
                             </template>
                         </el-input-number>
-                        <el-tooltip content="发布时间超过该设置的内容将被忽略" placement="top">
+                        <el-tooltip content="不处理发布时间超过该设置的内容" placement="top">
+                            <el-icon color="gray" style="margin-left: 10px;">
+                                <i-ep-question-filled />
+                            </el-icon>
+                        </el-tooltip>
+                    </el-form-item>
+                    <el-form-item label="确认有效期">
+                        <el-input-number style="width: 120px;" v-model="userConfig.process.confirm_expire"
+                            :controls="false">
+                            <template #suffix>
+                                <span>
+                                    秒
+                                </span>
+                            </template>
+                        </el-input-number>
+                        <el-tooltip content="自动忽略超过该时间的确认项目" placement="top">
                             <el-icon color="gray" style="margin-left: 10px;">
                                 <i-ep-question-filled />
                             </el-icon>

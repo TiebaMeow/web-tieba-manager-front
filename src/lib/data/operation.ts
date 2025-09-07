@@ -17,3 +17,6 @@ export interface Operation {
     options: object
     direct: boolean
 }
+
+
+export type OperationGroup = 'ignore' | 'delete' | 'block' | 'delete_and_block' | Operation[] | 'custom'

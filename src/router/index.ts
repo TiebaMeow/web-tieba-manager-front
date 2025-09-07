@@ -42,6 +42,14 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/dashboard/RuleSets.vue')
     },
     {
+        path: '/confirm-list',
+        name: 'confirmList',
+        meta: {
+            title: '确认列表'
+        },
+        component: () => import('../views/dashboard/ConfirmList.vue')
+    },
+    {
         path: '/rule-sets/:id(\\d+)',
         name: 'ruleSetDetail',
         meta: {

@@ -81,3 +81,22 @@ export function doAfterRefMounted<T>(ref: Ref<T>, callback: CallBackWithData<Ref
 export function getViewMode(width: number): 'desktop' | 'mobile' {
     return window.innerWidth > width ? 'desktop' : 'mobile'
 }
+
+export function getContentMark(content: Content) {
+    switch (content.type) {
+        case 'thread':
+            return content.title
+        case 'post':
+            return `${content.title} ${content.floor}楼`
+        case 'comment':
+            return `${content.title} ${content.floor}楼 楼中楼`
+    }
+}
+
+export function gotoPortrait(portrait: string) {
+    window.open('https://tieba.baidu.com/home/main?id=' + portrait, '_blank')
+}
+
+export function gotoPost(thread: Content) {
+    window.open(`https://tieba.baidu.com/p/${thread.tid}?pid=${thread.pid}#${thread.pid}`, '_blank')
+}
