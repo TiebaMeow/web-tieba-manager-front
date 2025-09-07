@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import type { Ref, ComputedRef } from 'vue'
-import { useRouter } from 'vue-router';
 
 import TokenRequest, { SwitchHostEvent } from '@/lib/token';
 import { formatDate, getContentMark } from '@/lib/utils';
 import message from '@/lib/message';
 import { gotoPost, gotoPortrait } from '@/lib/utils';
 import { DIALOG_WIDTH } from '@/lib/constance';
-
-const router = useRouter()
-
 
 interface ConfirmData {
     content: Thread | Post | Comment
@@ -28,12 +24,13 @@ const AutoRefresh = new class AutoRefresh {
     curr_time: Ref<number>
     enable: Ref<boolean>
     percentage: ComputedRef<number>
-
+    stop: boolean // 用于停止循环
 
     constructor() {
         this.INTERVAL = ref(60)
         this.curr_time = ref(0)
         this.enable = ref(true)
+        this.stop = false
         this.percentage = computed(() => {
             return 100 * this.curr_time.value / this.INTERVAL.value
         })
@@ -48,9 +45,15 @@ const AutoRefresh = new class AutoRefresh {
                 fetchConfirmList()
             }
         }
+        if (this.stop) {
+            return
+        }
         setTimeout(() => this.loop(), 1000)
     }
 }
+onUnmounted(() => {
+    AutoRefresh.stop = true
+})
 
 function clearConfirmSelected() {
     confirmSelectedDict.value = {};
