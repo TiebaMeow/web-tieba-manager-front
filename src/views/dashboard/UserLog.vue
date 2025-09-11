@@ -181,7 +181,6 @@ onMounted(() => {
 .log-container {
     width: 100%;
     height: calc(100vh - 250px);
-    ;
     border-radius: 6px;
     border: 1px solid black;
     overflow: hidden;
