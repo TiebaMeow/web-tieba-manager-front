@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
 import TokenRequest from '@/lib/token';
 import type { ScrollbarInstance } from 'element-plus';
 import message from '@/lib/message';
@@ -140,6 +140,10 @@ onMounted(() => {
     }
     startLogStream(token)
 })
+
+const hasValidLogData = computed(() => {
+    return logMode.value === 'history' ? currLogData.value !== false : realtimeLogData.value !== false
+})
 </script>
 
 <template>
@@ -156,8 +160,7 @@ onMounted(() => {
         </div>
         <el-divider />
         <div class="log-container" v-loading="loadingLog">
-            <el-scrollbar ref="scrollbarRef"
-                v-if="logMode === 'history' ? currLogData !== false : realtimeLogData !== false">
+            <el-scrollbar ref="scrollbarRef" v-if="hasValidLogData">
                 <p v-if="logMode === 'history' && currLogData" style="margin: 10px 20px;" ref="innerRef">
                     <template v-for="(log, index) in currLogData" :key="index">
                         {{ log.message }}<br />
