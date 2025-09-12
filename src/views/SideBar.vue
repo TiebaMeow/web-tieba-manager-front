@@ -5,15 +5,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { DashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';
-import { historyHosts } from '@/lib/data/hostManager';
-import TokenRequest from '@/lib/token';
+import { currHostData } from '@/lib/data/hostManager';
 
 const route = useRoute()
 const router = useRouter()
 const ifShow = defineModel<boolean>()
 const viewMode = getViewMode(900)
-const homeInfo = getHomeInfo()
-
+getHomeInfo()
 
 function getHost() {
     const host = getData<string>('server_host')
@@ -41,8 +39,8 @@ const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
                 <div class="sidebar">
                     <div class="title">
                         {{ getHost() }}<br />
-                        {{ historyHosts[TokenRequest.host].user }}<template v-if="homeInfo && homeInfo.forum">@{{
-                            homeInfo.forum }}</template>
+                        {{ currHostData.user }}<template v-if="currHostData.forum">@{{
+                            currHostData.forum }}</template>
                     </div>
                     <div v-for="routeRaw in visibleRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"

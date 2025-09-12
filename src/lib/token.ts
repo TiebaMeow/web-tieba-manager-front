@@ -9,7 +9,7 @@ import router from '../router'
 import { getData } from './utils'
 import Hook from './hook'
 import { saveData } from './utils'
-import { setToken, deleteHost } from './data/hostManager'
+import { setToken, deleteHost, currHost } from './data/hostManager'
 
 export const SwitchHostEvent = new Hook<string>()
 
@@ -57,6 +57,8 @@ const TokenRequest = new class TokenRequest extends Requests {
 
         const token = await axios.post<{
             access_token: string,
+            token_type: string,
+            system_access: boolean
         }>(this.host + url, params, {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         })
@@ -66,14 +68,20 @@ const TokenRequest = new class TokenRequest extends Requests {
             host: this.host,
             token: token.data.access_token,
             user: username,
+            system_access: token.data.system_access
         })
         SwitchHostEvent.call(this.host)
         return token
     }
 
 
-    switchHost(host: string) {
+    switchHost(host: string, token?: string) {
         this.host = host
+        currHost.value = host
+        if (token) {
+            saveData('access_token', token);
+        }
+        saveData('server_host', host)
     }
 
 }({ host: getData<string>('server_host') || 'https://api.example.com' })
