@@ -73,6 +73,14 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         },
         component: () => import('../views/dashboard/EditRuleSet.vue')
     },
+    {
+        path: '/user-log',
+        name: 'userLog',
+        meta: {
+            title: '日志'
+        },
+        component: () => import('../views/dashboard/UserLog.vue')
+    },
 ]
 
 const routes: RouteRecordRaw[] = [

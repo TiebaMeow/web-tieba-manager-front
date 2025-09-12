@@ -92,7 +92,7 @@ function moveUpRuleSet(index: number) {
 <template>
     <div v-if="ruleSets" style="max-width: 1000px; flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;">
-            <h1>{{ whitelistMode ? '信任' : '违规' }}规则设置</h1>
+            <h2>{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
             <el-button type="danger" @click="emptyRuleSet">清空规则</el-button>
             <el-button type="primary" @click="addRuleSet">添加规则</el-button>
             <el-button type="success" @click="save">保存</el-button>
