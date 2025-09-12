@@ -3,6 +3,8 @@ import TokenRequest from '../token'
 import message from '../message'
 import { AxiosError } from 'axios'
 import type { OperationGroup } from './operation'
+import { SwitchTokenEvent } from './tokenManager'
+import router from '@/router'
 
 
 interface RuleInfo {
@@ -113,6 +115,22 @@ async function setRuleSets() {
         }
     }
 }
+
+SwitchTokenEvent.on((token) => {
+    if (token && router.currentRoute.value.path.includes('rule-sets')) {
+        TokenRequest.fetch(ruleInfoList, {
+            url: '/api/rule/info'
+        })
+        TokenRequest.fetch(ruleSets, {
+            url: '/api/rule/get'
+        })
+        // TODO 后续优化为不跳转
+        router.push('/rule-sets')
+    } else {
+        ruleSets.value = undefined
+        ruleInfoList.value = undefined
+    }
+})
 
 export {
     ruleSets,

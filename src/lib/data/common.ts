@@ -1,6 +1,7 @@
 import { ref } from "vue"
 import TokenRequest from "../token"
 import { setForum, currToken } from "./tokenManager"
+import { SwitchTokenEvent } from "./tokenManager"
 
 interface HomeInfo {
     enable: boolean
@@ -31,6 +32,15 @@ function getHomeInfo() {
     }
     return homeInfo
 }
+
+SwitchTokenEvent.on((token) => {
+    if (
+        token) {
+        fetchHomeInfo()
+    } else {
+        homeInfo.value = undefined
+    }
+})
 
 export {
     fetchHomeInfo,

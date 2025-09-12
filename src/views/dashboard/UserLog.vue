@@ -4,6 +4,7 @@ import TokenRequest from '@/lib/token';
 import type { ScrollbarInstance } from 'element-plus';
 import message from '@/lib/message';
 import { getData } from '@/lib/utils';
+import { SwitchTokenEvent } from '@/lib/data/tokenManager';
 
 // TODO 切换日志文件时，在小屏幕设备上，会导致意外的内容增宽 (?)
 
@@ -123,11 +124,25 @@ function startLogStream(token: string) {
         eventSource?.close()
         message.notify('实时日志连接已关闭', message.error)
         realtimeLogData.value = false
+        listener()
+
     }
 
     onUnmounted(() => {
         realtimeLogData.value = false
         eventSource?.close()
+        listener()
+    })
+
+    const listener = SwitchTokenEvent.on((newToken) => {
+        if (newToken) {
+            eventSource.close()
+            startLogStream(newToken)
+        } else {
+            realtimeLogData.value = false
+            eventSource.close()
+        }
+        listener() // 取消监听
     })
 }
 
@@ -140,6 +155,13 @@ onMounted(() => {
     }
     startLogStream(token)
 })
+
+onUnmounted(SwitchTokenEvent.on((token) => {
+    if (token) {
+        currLog.value = ''
+        fetchLogList()
+    }
+}))
 
 const hasValidLogData = computed(() => {
     return logMode.value === 'history' ? currLogData.value !== false : realtimeLogData.value !== false

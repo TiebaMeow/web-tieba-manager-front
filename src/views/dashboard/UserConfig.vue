@@ -2,7 +2,9 @@
 import message from '@/lib/message'
 import TokenRequest from '@/lib/token'
 import { fetchHomeInfo } from '@/lib/data/common'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
+import { SwitchTokenEvent } from '@/lib/data/tokenManager'
+
 
 interface ForumConfig {
     block_day: number
@@ -31,6 +33,16 @@ const userConfig = ref<RefResponse<UserConfig>>(undefined)
 TokenRequest.fetch(userConfig, {
     url: '/api/config/get_user'
 })
+
+onUnmounted(SwitchTokenEvent.on((token) => {
+    if (token) {
+        TokenRequest.fetch(userConfig, {
+            url: '/api/config/get_user'
+        })
+    } else {
+        userConfig.value = undefined
+    }
+}))
 
 
 async function setUserConfig() {
