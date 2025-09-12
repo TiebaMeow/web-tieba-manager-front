@@ -2,11 +2,12 @@
 import { ref, computed, onUnmounted } from 'vue';
 import type { Ref, ComputedRef } from 'vue'
 
-import TokenRequest, { SwitchHostEvent } from '@/lib/token';
+import TokenRequest from '@/lib/token';
 import { formatDate, getContentMark } from '@/lib/utils';
 import message from '@/lib/message';
 import { gotoPost, gotoPortrait } from '@/lib/utils';
 import { DIALOG_WIDTH } from '@/lib/constance';
+import { SwitchTokenEvent } from '@/lib/data/tokenManager';
 
 interface ConfirmData {
     content: Thread | Post | Comment
@@ -85,8 +86,15 @@ async function fetchConfirmList() {
 }
 
 fetchConfirmList()
-SwitchHostEvent.on(() => {
-    fetchConfirmList()
+SwitchTokenEvent.on((token) => {
+    if (token) {
+        confirmList.value = null
+        clearConfirmSelected()
+        fetchConfirmList()
+    } else {
+        confirmList.value = []
+        clearConfirmSelected()
+    }
 })
 
 async function confirm(action: 'ignore' | 'execute', content: Content, index: number) {

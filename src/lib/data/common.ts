@@ -1,6 +1,6 @@
 import { ref } from "vue"
 import TokenRequest from "../token"
-import { setForum } from "./hostManager"
+import { setForum, currToken } from "./tokenManager"
 
 interface HomeInfo {
     enable: boolean
@@ -20,7 +20,7 @@ async function fetchHomeInfo() {
         url: '/api/user/info'
     })
     if (homeInfo.value && homeInfo.value.forum) {
-        setForum(TokenRequest.host, homeInfo.value.forum)
+        setForum(currToken.value, homeInfo.value.forum)
     }
 }
 

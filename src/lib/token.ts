@@ -7,16 +7,22 @@ import type { RequestsConfig, RequestsOptions } from './request'
 import message from './message'
 import router from '../router'
 import { getData } from './utils'
-import Hook from './hook'
 import { saveData } from './utils'
-import { setToken, deleteHost, currHost } from './data/hostManager'
+import { setToken, currToken, SwitchTokenEvent, switchTokenByHistory } from './data/tokenManager'
 
-export const SwitchHostEvent = new Hook<string>()
 
 
 const TokenRequest = new class TokenRequest extends Requests {
     constructor(config: RequestsConfig) {
         super(config)
+    }
+
+    logout(deleteToken?: boolean) {
+        if (deleteToken) {
+            saveData('access_token', '')
+        }
+        switchTokenByHistory('')
+        router.push('/login')
     }
 
     async httpRequests<T>(method: string, options: RequestsOptions): Promise<AxiosResponse<T>> {
@@ -27,8 +33,7 @@ const TokenRequest = new class TokenRequest extends Requests {
                 if (err.response) {
                     if (err.response.status === 401) {
                         message.notify('登录已过期，请重新登录。', message.error)
-                        deleteHost(this.host)
-                        router.push('/login')
+                        this.logout(true)
                     } else {
                         message.notify('请求失败，错误码：' + err.response?.status, message.error)
                     }
@@ -36,7 +41,7 @@ const TokenRequest = new class TokenRequest extends Requests {
                     message.notify('服务器内部错误，请查看服务器日志。', message.error)
                 } else {
                     message.notify('请求失败，请检查网络连接。', message.error)
-                    router.push('/login')
+                    this.logout()
                 }
             }
             throw err
@@ -70,18 +75,19 @@ const TokenRequest = new class TokenRequest extends Requests {
             user: username,
             system_access: token.data.system_access
         })
-        SwitchHostEvent.call(this.host)
+        currToken.value = token.data.access_token
+        SwitchTokenEvent.call(token.data.access_token)
         return token
     }
 
 
     switchHost(host: string, token?: string) {
         this.host = host
-        currHost.value = host
+        saveData('server_host', host)
         if (token) {
+            currToken.value = token
             saveData('access_token', token);
         }
-        saveData('server_host', host)
     }
 
 }({ host: getData<string>('server_host') || 'https://api.example.com' })

@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { DashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';
-import { currHostData } from '@/lib/data/hostManager';
+import { currTokenData } from '@/lib/data/tokenManager';
 
 const route = useRoute()
 const router = useRouter()
@@ -39,8 +39,8 @@ const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
                 <div class="sidebar">
                     <div class="title">
                         {{ getHost() }}<br />
-                        {{ currHostData.user }}<template v-if="currHostData.forum">@{{
-                            currHostData.forum }}</template>
+                        {{ currTokenData.user }}<template v-if="currTokenData.forum">@{{
+                            currTokenData.forum }}</template>
                     </div>
                     <div v-for="routeRaw in visibleRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
