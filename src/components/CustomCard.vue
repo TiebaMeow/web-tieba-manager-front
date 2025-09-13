@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Close } from '@element-plus/icons-vue';
+import { canEdit } from '@/lib/data/rule';
 
 const {
     name = ''
@@ -23,7 +24,7 @@ const emit = defineEmits<{
             </div>
             <div style="flex-grow: 1;">
             </div>
-            <el-button type="danger" :icon="Close" @click="emit('delete')"
+            <el-button v-if="canEdit" type="danger" :icon="Close" @click="emit('delete')"
                 style="margin-left: 10px; width: 35px; flex-shrink: 0;">
             </el-button>
         </div>

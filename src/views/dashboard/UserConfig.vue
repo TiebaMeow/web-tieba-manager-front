@@ -3,7 +3,7 @@ import message from '@/lib/message'
 import TokenRequest from '@/lib/token'
 import { fetchHomeInfo } from '@/lib/data/common'
 import { ref, onUnmounted } from 'vue'
-import { SwitchTokenEvent } from '@/lib/data/tokenManager'
+import { currTokenData, SwitchTokenEvent } from '@/lib/data/tokenManager'
 
 
 interface ForumConfig {
@@ -58,7 +58,7 @@ async function setUserConfig() {
         message.notify('保存成功', message.success)
         fetchHomeInfo()
     } else {
-        message.notify('保存失败', message.error)
+        message.notify('保存失败: ' + response.data.message, message.error)
     }
 }
 
@@ -71,7 +71,8 @@ async function setUserConfig() {
                 <h3>贴吧设置</h3>
                 <el-form label-width="auto">
                     <el-form-item label="扫描贴吧">
-                        <el-input v-model="userConfig.forum.fname"></el-input>
+                        <el-input v-model="userConfig.forum.fname"
+                            :disabled="!currTokenData.permission?.can_edit_forum && !currTokenData.system_access"></el-input>
                     </el-form-item>
                     <el-form-item label="封禁时长">
                         <el-input-number v-model="userConfig.forum.block_day">

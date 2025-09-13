@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
-import { getRuleSets, setRuleSets } from '@/lib/data/rule';
+import { getRuleSets, setRuleSets, canEdit } from '@/lib/data/rule';
 import router from '@/router';
 import { getViewMode } from '@/lib/utils';
 import message from '@/lib/message';
@@ -93,9 +93,11 @@ function moveUpRuleSet(index: number) {
     <div v-if="ruleSets" style="max-width: 1000px; flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;">
             <h2>{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
-            <el-button type="danger" @click="emptyRuleSet">清空规则</el-button>
-            <el-button type="primary" @click="addRuleSet">添加规则</el-button>
-            <el-button type="success" @click="save">保存</el-button>
+            <template v-if="canEdit">
+                <el-button type="danger" @click="emptyRuleSet">清空规则</el-button>
+                <el-button type="primary" @click="addRuleSet">添加规则</el-button>
+                <el-button type="success" @click="save">保存</el-button>
+            </template>
             <el-divider style="margin-bottom: 20px;"></el-divider>
             <template v-if="currRuleSetLength">
                 <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(ruleSet, index) in ruleSets"
@@ -120,9 +122,14 @@ function moveUpRuleSet(index: number) {
                                 <custom-statistic title="手动确认" :value="ruleSet.manual_confirm ? '是' : '否'" />
                             </div>
                             <div style="flex-grow: 1; display: flex; justify-content: flex-end; align-items: flex-end;">
-                                <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
-                                <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
-                                <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                <template v-if="canEdit">
+                                    <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
+                                    <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
+                                    <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                </template>
+                                <template v-else>
+                                    <el-button type="primary" @click="editRuleSet(index)">查看</el-button>
+                                </template>
                             </div>
                         </div>
                         <div v-else>
@@ -144,9 +151,14 @@ function moveUpRuleSet(index: number) {
 
                             </div>
                             <div style="flex-grow: 1; display: flex; align-items: flex-end;">
-                                <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
-                                <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
-                                <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                <template v-if="canEdit">
+                                    <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
+                                    <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
+                                    <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                </template>
+                                <template v-else>
+                                    <el-button type="primary" @click="editRuleSet(index)">查看</el-button>
+                                </template>
                             </div>
                         </div>
                     </el-card>

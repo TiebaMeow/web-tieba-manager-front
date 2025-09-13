@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ruleInfoDict, type Rule } from '@/lib/data/rule';
+import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
 interface CheckboxRule extends Rule {
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 <template>
     <CustomCard v-if="data" :name="ruleInfoDict[data.type].name" @delete="emit('delete')">
         <div style="display: flex; flex-wrap: wrap; padding: 0 20px;">
-            <el-checkbox-group v-model="data.options.values">
+            <el-checkbox-group v-model="data.options.values" :disabled="!canEdit">
                 <el-checkbox v-for="(name, value) in ruleInfoDict[data.type].values" :key="value" :value="value"
                     :label="name"></el-checkbox>
             </el-checkbox-group>

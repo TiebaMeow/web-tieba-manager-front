@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NumberInput from '@/components/NumberInput.vue';
-import { ruleInfoDict, type Rule } from '@/lib/data/rule';
+import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
 interface LimiterRule extends Rule {
@@ -27,13 +27,15 @@ const emit = defineEmits<{
                 <p>
                     最小
                 </p>
-                <NumberInput v-model="data.options.min" placeholder="最小" @change="emit('change')"></NumberInput>
+                <NumberInput v-model="data.options.min" placeholder="最小" @change="emit('change')" :disabled="!canEdit">
+                </NumberInput>
             </div>
             <div class="number-bar" style="margin-left: 10px;">
                 <p>
                     最大
                 </p>
-                <NumberInput v-model="data.options.max" placeholder="最大" @change="emit('change')"></NumberInput>
+                <NumberInput v-model="data.options.max" placeholder="最大" @change="emit('change')" :disabled="!canEdit">
+                </NumberInput>
             </div>
         </div>
     </CustomCard>

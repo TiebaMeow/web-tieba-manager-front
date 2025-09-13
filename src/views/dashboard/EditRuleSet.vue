@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { DIALOG_WIDTH } from '@/lib/constance';
-import { type RuleSet, ruleSets, fetchRuleSets, setRuleSets, ruleCategories, categorizedRuleType, ruleInfoDict } from '@/lib/data/rule';
+import {
+    type RuleSet,
+    ruleSets,
+    fetchRuleSets,
+    setRuleSets,
+    ruleCategories,
+    categorizedRuleType,
+    ruleInfoDict,
+    canEdit
+} from '@/lib/data/rule';
 import router from '@/router';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { copy } from '@/lib/utils';
@@ -82,6 +91,10 @@ function deleteAllRules() {
 }
 
 function saveRuleSet() {
+    if (!canEdit.value) {
+        message.notify('没有权限修改规则', message.error)
+        return
+    }
     if (ruleSetDataCopy.value && ruleSets.value) {
         if (ruleSetDataCopy.value.operations === 'custom') {
             ruleSetDataCopy.value.operations = customOpeations.value
@@ -175,31 +188,37 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
     </el-dialog>
     <div style="max-width: 1000px; flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;" v-if="ruleSetDataCopy">
-            <h1>编辑规则</h1>
+            <h1>{{ canEdit ? '编辑' : '查看' }}规则</h1>
             <el-form label-width="auto">
                 <el-form-item label="规则名">
-                    <el-input v-model="ruleSetDataCopy.name"></el-input>
+                    <el-input v-model="ruleSetDataCopy.name" :disabled="!canEdit"></el-input>
                 </el-form-item>
                 <el-form-item label="操作" v-show="!ruleSetDataCopy.whitelist">
                     <el-select v-model="ruleSetDataCopy.operations" placeholder="请选择操作" @change="() => {
                         customOpeations = []
                         edited = true
                         activeEdit = 'rule'
-                    }">
+                    }" :disabled="!canEdit">
                         <el-option v-for="(name, operation) in OPERATION_OPTIONS" :key="operation" :label="name"
                             :value="operation"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
             <div class="config-bar" v-show="!ruleSetDataCopy.whitelist">
-                <el-checkbox v-model="ruleSetDataCopy.manual_confirm" label="手动确认" />
+                <el-checkbox v-model="ruleSetDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit" />
             </div>
             <div style="display: flex;  align-items: flex-end;">
-                <el-button type="danger" @click="deleteAllRules">清空</el-button>
-                <el-button type="primary" @click="addItem">添加</el-button>
-                <el-button type="primary"
-                    @click="router.push(ruleSetDataCopy.whitelist ? '/whitelist-rule-sets' : '/rule-sets')">返回</el-button>
-                <el-button type="success" @click="saveRuleSet">保存</el-button>
+                <template v-if="canEdit">
+                    <el-button type="danger" @click="deleteAllRules">清空</el-button>
+                    <el-button type="primary" @click="addItem">添加</el-button>
+                    <el-button type="primary"
+                        @click="router.push(ruleSetDataCopy.whitelist ? '/whitelist-rule-sets' : '/rule-sets')">返回</el-button>
+                    <el-button type="success" @click="saveRuleSet">保存</el-button>
+                </template>
+                <template v-else>
+                    <el-button type="primary"
+                        @click="router.push(ruleSetDataCopy.whitelist ? '/whitelist-rule-sets' : '/rule-sets')">返回</el-button>
+                </template>
             </div>
             <el-tabs v-if="ruleSetDataCopy.operations == 'custom'" v-model="activeEdit" stretch style="margin: 20px 0;">
                 <el-tab-pane label="规则" name="rule"></el-tab-pane>

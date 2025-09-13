@@ -6,12 +6,18 @@ import Hook from '../hook';
 
 export const SwitchTokenEvent = new Hook<string | undefined>()
 
+export interface UserPermission {
+    can_edit_forum: boolean,
+    can_edit_rule_set: boolean
+}
 interface TokenData {
     host: string,
     user: string,
     forum?: string,
     system_access: boolean
+    permission?: UserPermission
 }
+
 
 const historyTokens = ref<{
     [token: string]: TokenData
@@ -65,9 +71,10 @@ function deleteToken(token: string) {
     saveHistoryTokens();
 }
 
-function setForum(token: string, forum: string) {
+function setTokenInfo(token: string, forum: string, permission: UserPermission) {
     if (hasOwn(historyTokens.value, token)) {
         historyTokens.value[token].forum = forum
+        historyTokens.value[token].permission = permission
         saveHistoryTokens();
     }
 }
@@ -88,6 +95,6 @@ export {
     sequenceHistoryTokens,
     setToken,
     deleteToken,
-    setForum,
+    setTokenInfo,
     switchTokenByHistory
 }

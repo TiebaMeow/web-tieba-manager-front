@@ -1,11 +1,11 @@
 import { ref } from "vue"
 import TokenRequest from "../token"
-import { setForum, currToken } from "./tokenManager"
-import { SwitchTokenEvent } from "./tokenManager"
+import { setTokenInfo, currToken, SwitchTokenEvent, type UserPermission } from "./tokenManager"
 
 interface HomeInfo {
     enable: boolean
     forum: string
+    permission: UserPermission
     account: {
         is_vip: boolean
         portrait: string
@@ -21,7 +21,7 @@ async function fetchHomeInfo() {
         url: '/api/user/info'
     })
     if (homeInfo.value && homeInfo.value.forum) {
-        setForum(currToken.value, homeInfo.value.forum)
+        setTokenInfo(currToken.value, homeInfo.value.forum, homeInfo.value.permission)
     }
 }
 
