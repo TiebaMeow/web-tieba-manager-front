@@ -2,6 +2,8 @@ import os
 import asyncio
 import argparse
 from pathlib import Path
+import platform
+
 import aiohttp
 
 KEY = os.getenv("KEY")
@@ -92,6 +94,6 @@ async def main():
 
 if __name__ == "__main__":
     # 确保在 Windows 上 aiohttp 可以正常运行
-    if "win" in str(Path.cwd()):
+    if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
