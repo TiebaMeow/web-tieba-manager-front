@@ -2,11 +2,12 @@
 import { computed, ref } from 'vue'
 
 const model = defineModel<number>()
-const { defaultValue, placeholder, validatePositive = true, clearable = true } = defineProps<{
+const { defaultValue, placeholder, validatePositive = true, clearable = true, disabled = false } = defineProps<{
     defaultValue?: number,
     placeholder?: string,
     validatePositive?: boolean,
     clearable?: boolean,
+    disabled?: boolean
 }>()
 
 const cache = ref('')
@@ -41,7 +42,7 @@ function parse(param: string) {
 
 <template>
     <el-input v-model="showModel" @change="sync" :clearable="clearable" @clear="model = defaultValue; cache = ''"
-        :placeholder="placeholder || (defaultValue ? defaultValue.toString() : '')" />
+        :placeholder="placeholder || (defaultValue ? defaultValue.toString() : '')" :disabled="disabled" />
 </template>
 
 <style scoped></style>

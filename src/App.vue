@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { getViewMode, saveData } from './lib/utils';
+import { getViewMode } from './lib/utils';
 import { useRoute, useRouter } from 'vue-router';
 import message from './lib/message';
-import { deleteHost, sequenceHistoryHosts, switchHostByHistory } from './lib/data/hostManager';
-import TokenRequest from './lib/token';
+import { currToken, currTokenData, deleteToken, sequenceHistoryTokens, switchTokenByHistory } from './lib/data/tokenManager';
 import { DIALOG_WIDTH } from './lib/constance';
 import SideBar from './views/SideBar.vue';
+import TokenRequest from './lib/token';
 
-const route = useRoute()
 const router = useRouter()
+const route = useRoute()
 
 const ifShowSidebar = ref(!(getViewMode(900) === 'mobile'))
 const ifShowSwitch = ref(false)
@@ -30,36 +30,43 @@ function logout(deleteHistory: boolean = false, text: string = '即将登出') {
         text, '提示',
         () => {
             if (deleteHistory) {
-                deleteHost(TokenRequest.host)
+                deleteToken(currToken.value)
             }
             if (ifShowSwitch.value) {
                 ifShowSwitch.value = false
             }
-            router.push('/login')
-            saveData('access_token', '')
+            TokenRequest.logout(true)
         }
     )
 }
 
-function handleDeleteHost(host: string) {
-    if (TokenRequest.host === host) {
+function handleDeleteToken(token: string) {
+    if (currToken.value === token) {
         logout(true, '即将删除并登出正在使用的服务')
     } else {
-        deleteHost(host)
+        deleteToken(token)
     }
 }
 
-function handleSwitchHost(host: string) {
-    if (switchHostByHistory(host)) {
+function handleSwitchToken(token: string) {
+    if (switchTokenByHistory(token)) {
+        if (route.meta.system && !currTokenData.value.system_access || ['login', 'register'].includes(route.name as string)) {
+            // 切换到的账号没有系统权限，且当前页面需要系统权限，或当前页面为登录注册页
+            // 则跳转到控制台首页
+            router.push('/dashboard')
+        }
+        message.notify('切换成功', message.success)
         ifShowSwitch.value = false
+    } else {
+        message.notify('切换失败，请稍后再试', message.error)
     }
 }
 </script>
 
 <template>
     <el-dialog v-model="ifShowSwitch" title="请选择服务" :width="Math.min(DIALOG_WIDTH, 500)">
-        <el-table :data="sequenceHistoryHosts">
-            <el-table-column prop="host" label="服务">
+        <el-table :data="sequenceHistoryTokens">
+            <el-table-column prop="token" label="服务">
                 <template #default="scope">
                     <div style="text-align: center;">
                         {{ scope.row.host }}
@@ -73,9 +80,9 @@ function handleSwitchHost(host: string) {
             </el-table-column>
             <el-table-column label="操作" :width="135">
                 <template #default="scope">
-                    <el-button size="small" type="danger" @click="handleDeleteHost(scope.row.host)">删除</el-button>
-                    <el-button size="small" type="primary" @click="handleSwitchHost(scope.row.host)"
-                        :disabled="TokenRequest.host === scope.row.host">切换</el-button>
+                    <el-button size="small" type="danger" @click="handleDeleteToken(scope.row.token)">删除</el-button>
+                    <el-button size="small" type="primary" @click="handleSwitchToken(scope.row.token)"
+                        :disabled="currToken === scope.row.token">切换</el-button>
                 </template>
             </el-table-column>
         </el-table>

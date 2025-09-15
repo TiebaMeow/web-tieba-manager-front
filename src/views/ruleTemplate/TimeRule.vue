@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { MAIN_VIEW } from '@/lib/constance';
-import { ruleInfoDict, type Rule } from '@/lib/data/rule';
+import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
 interface LimiterRule extends Rule {
@@ -28,14 +28,14 @@ const emit = defineEmits<{
                     起始
                 </p>
                 <el-date-picker v-model="data.options.start" type="datetime" placeholder="选填"
-                    value-format="YYYY-MM-DD HH:mm:ss" />
+                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" />
             </div>
             <div class="bar">
                 <p>
                     结束
                 </p>
                 <el-date-picker v-model="data.options.end" type="datetime" placeholder="选填"
-                    value-format="YYYY-MM-DD HH:mm:ss" />
+                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" />
             </div>
         </div>
     </CustomCard>

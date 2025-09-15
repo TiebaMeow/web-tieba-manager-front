@@ -3,6 +3,8 @@ import TokenRequest from '../token'
 import message from '../message'
 import { AxiosError } from 'axios'
 import type { OperationGroup } from './operation'
+import { currTokenData, SwitchTokenEvent } from './tokenManager'
+import router from '@/router'
 
 
 interface RuleInfo {
@@ -75,6 +77,10 @@ interface RuleSet {
 
 const ruleSets = ref<RefResponse<RuleSet[]>>(undefined)
 
+export const canEdit = computed(() => {
+    return currTokenData.value.permission?.can_edit_rule_set || currTokenData.value.system_access
+})
+
 function getRuleSets() {
     getRuleInfoList()
     if (!ruleSets.value) {
@@ -96,14 +102,21 @@ async function fetchRuleSets() {
 }
 
 async function setRuleSets() {
+    if (!canEdit.value) {
+        message.notify('没有权限修改规则', message.error)
+        return
+    }
     if (ruleSets.value) {
         try {
-            await TokenRequest.post({
+            const response = await TokenRequest.post<BaseResponse<boolean>>({
                 url: '/api/rule/set',
                 data: ruleSets.value
             })
-            message.notify('规则保存成功', message.success)
-
+            if (response.data.code === 200) {
+                message.notify('规则保存成功', message.success)
+            } else {
+                message.notify('规则保存失败 ' + response.data.message, message.error)
+            }
         } catch (err) {
             if (err instanceof AxiosError) {
                 message.notify('规则保存失败 ' + err.response?.data.message, message.error)
@@ -113,6 +126,22 @@ async function setRuleSets() {
         }
     }
 }
+
+SwitchTokenEvent.on((token) => {
+    if (token && router.currentRoute.value.path.includes('rule-sets')) {
+        TokenRequest.fetch(ruleInfoList, {
+            url: '/api/rule/info'
+        })
+        TokenRequest.fetch(ruleSets, {
+            url: '/api/rule/get'
+        })
+        // TODO 后续优化为不跳转
+        router.push('/rule-sets')
+    } else {
+        ruleSets.value = undefined
+        ruleInfoList.value = undefined
+    }
+})
 
 export {
     ruleSets,

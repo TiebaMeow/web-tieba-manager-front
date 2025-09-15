@@ -2,18 +2,16 @@
 import { getData } from '@/lib/utils';
 import CollapseItem from '@/components/CollapseItem';
 import { useRoute, useRouter } from 'vue-router';
-import { DashboardRoutes } from '@/router';
+import { DashboardRoutes, SystemManagementRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';
-import { historyHosts } from '@/lib/data/hostManager';
-import TokenRequest from '@/lib/token';
+import { currTokenData } from '@/lib/data/tokenManager';
 
 const route = useRoute()
 const router = useRouter()
 const ifShow = defineModel<boolean>()
 const viewMode = getViewMode(900)
-const homeInfo = getHomeInfo()
-
+getHomeInfo()
 
 function getHost() {
     const host = getData<string>('server_host')
@@ -28,6 +26,7 @@ function goto(url: string) {
 }
 
 const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
+const visibleSystemRoutes = SystemManagementRoutes.filter((value) => !value.meta.hide)
 
 </script>
 
@@ -41,14 +40,22 @@ const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
                 <div class="sidebar">
                     <div class="title">
                         {{ getHost() }}<br />
-                        {{ historyHosts[TokenRequest.host].user }}<template v-if="homeInfo && homeInfo.forum">@{{
-                            homeInfo.forum }}</template>
+                        {{ currTokenData.user }}<template v-if="currTokenData.forum">@{{
+                            currTokenData.forum }}</template>
                     </div>
                     <div v-for="routeRaw in visibleRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
                         @click="goto(routeRaw.path)">
                         {{ routeRaw.meta.title }}
                     </div>
+                    <template v-if="currTokenData.system_access">
+                        <el-divider style="margin: 0;"></el-divider>
+                        <div v-for="routeRaw in visibleSystemRoutes" :key="routeRaw.name" class="bar"
+                            :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
+                            @click="goto(routeRaw.path)">
+                            {{ routeRaw.meta.title }}
+                        </div>
+                    </template>
                 </div>
             </div>
         </CollapseItem>

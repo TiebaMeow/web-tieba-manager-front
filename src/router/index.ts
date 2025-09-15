@@ -5,6 +5,8 @@ type DashboardRouteRecordRaw = RouteRecordRaw & {
     meta: {
         title?: string
         hide?: boolean
+        system?: boolean
+        noToken?: boolean
     }
 }
 
@@ -79,7 +81,28 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         meta: {
             title: '日志'
         },
-        component: () => import('../views/dashboard/UserLog.vue')
+        component: () => import('../views/LogComponent.vue')
+    },
+]
+
+export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
+    {
+        path: '/user-management',
+        name: 'userManagement',
+        meta: {
+            title: '用户管理',
+            system: true
+        },
+        component: () => import('../views/systemManagement/UserManagement.vue')
+    },
+    {
+        path: '/system-log',
+        name: 'systemLog',
+        meta: {
+            title: '系统日志',
+            system: true
+        },
+        component: () => import('../views/LogComponent.vue')
     },
 ]
 
@@ -87,23 +110,51 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/initialize',
         name: 'initialize',
+        meta: {
+            noToken: true
+        },
         component: () => import('../views/InitializeComponent.vue')
     },
     {
         path: '/login',
         name: 'login',
+        meta: {
+            noToken: true
+        },
+        component: () => import('../views/LoginComponent.vue')
+    },
+    {
+        path: '/register',
+        name: 'register',
+        meta: {
+            noToken: true
+        },
         component: () => import('../views/LoginComponent.vue')
     },
     {
         path: '/dashboard',
         name: 'dashboard',
-        children: DashboardRoutes
-    }
+        children: [...DashboardRoutes, ...SystemManagementRoutes],
+        redirect: '/home',
+    },
 ]
 
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
     routes,
+})
+
+
+import { currToken } from '../lib/data/tokenManager'
+
+router.beforeEach((to, from, next) => {
+    // noToken 默认为 false
+    const noToken = to.meta?.noToken === true;
+    if (!noToken && currToken.value === '') {
+        next({ path: '/login' });
+    } else {
+        next();
+    }
 })
 
 export default router

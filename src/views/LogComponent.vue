@@ -2,10 +2,17 @@
 import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
 import TokenRequest from '@/lib/token';
 import type { ScrollbarInstance } from 'element-plus';
+import { useRoute } from 'vue-router';
 import message from '@/lib/message';
 import { getData } from '@/lib/utils';
+import { SwitchTokenEvent } from '@/lib/data/tokenManager';
 
 // TODO 切换日志文件时，在小屏幕设备上，会导致意外的内容增宽 (?)
+
+const route = useRoute();
+
+const system = computed(() => route.path.startsWith('/system-log'))
+const apiUrl = computed(() => system.value ? '/api/system/log/' : '/api/log/')
 
 interface LogData {
     message: string
@@ -37,7 +44,7 @@ async function fetchLogList() {
     loadingList.value = true
     try {
         const response = await TokenRequest.get<BaseResponse<string[]>>({
-            url: '/api/log/get_list'
+            url: `/api/log/get_list`
         })
         if (response.data.code === 200) {
             logList.value = response.data.data
@@ -59,7 +66,7 @@ async function fetchLog(file: string) {
     loadingLog.value = true
     try {
         const response = await TokenRequest.get<BaseResponse<LogData[]>>({
-            url: '/api/log/get_user',
+            url: `${apiUrl.value}get`,
             data: {
                 file
             }
@@ -100,35 +107,82 @@ function scrollToBottom() {
     })
 }
 
-function startLogStream(token: string) {
-    const url = `${TokenRequest.host}/api/log/user_realtime?token=${encodeURIComponent(token)}`
-    const eventSource = new EventSource(url)
-    realtimeLogData.value = []
 
-    eventSource.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data)
-            if (realtimeLogData.value === false) {
-                realtimeLogData.value = []
-                return
+const RealtimeLog = new class RealtimeLog {
+    shouldStop: boolean = false
+    eventSource: EventSource | null = null
+    listerner: (() => void) | null = null
+    constructor() {
+        this.listerner = SwitchTokenEvent.on((newToken) => {
+            if (newToken) {
+                this.closeOldConnection()
+                this.start(newToken)
+            } else {
+                this.closeOldConnection()
+                realtimeLogData.value = false
             }
-            realtimeLogData.value.push(data)
-        } catch {
-            message.notify('解析日志数据失败', message.error)
+        })
+
+        watch(system, () => {
+            realtimeLogData.value = false
+            this.closeOldConnection()
+            const token = getData<string>('access_token')
+            if (token) {
+                this.start(token)
+            }
+        })
+    }
+
+    closeOldConnection() {
+        if (this.eventSource) {
+            this.eventSource.close()
+            this.eventSource = null
         }
     }
 
-    eventSource.onerror = () => {
-        // 连接异常处理
-        eventSource?.close()
-        message.notify('实时日志连接已关闭', message.error)
-        realtimeLogData.value = false
+    start(token: string) {
+        if (this.shouldStop) {
+            // 组件已卸载，停止继续链接
+            return
+        }
+        const url = `${TokenRequest.host}${apiUrl.value}realtime?token=${encodeURIComponent(token)}`
+        const eventSource = new EventSource(url)
+        realtimeLogData.value = []
+
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data)
+                if (realtimeLogData.value === false) {
+                    realtimeLogData.value = []
+                    return
+                }
+                realtimeLogData.value.push(data)
+            } catch {
+                message.notify('解析日志数据失败', message.error)
+            }
+        }
+
+        eventSource.onerror = () => {
+            // 连接异常处理
+            eventSource?.close()
+
+            message.notify('实时日志连接已关闭', message.error)
+            realtimeLogData.value = false
+
+        }
+
+        this.closeOldConnection()
+        this.eventSource = eventSource
     }
 
-    onUnmounted(() => {
-        realtimeLogData.value = false
-        eventSource?.close()
-    })
+    stop() {
+        this.shouldStop = true
+        this.closeOldConnection()
+        if (this.listerner) {
+            this.listerner()
+            this.listerner = null
+        }
+    }
 }
 
 onMounted(() => {
@@ -138,7 +192,21 @@ onMounted(() => {
         realtimeLogData.value = false
         return
     }
-    startLogStream(token)
+    RealtimeLog.start(token)
+})
+
+onUnmounted(SwitchTokenEvent.on((token) => {
+    if (token) {
+        currLog.value = ''
+        fetchLogList()
+    }
+}))
+onUnmounted(() => {
+    RealtimeLog.stop()
+})
+watch(system, () => {
+    currLog.value = ''
+    fetchLogList()
 })
 
 const hasValidLogData = computed(() => {
