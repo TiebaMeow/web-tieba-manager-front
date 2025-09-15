@@ -1,0 +1,47 @@
+name: Publish Package
+
+on:
+    push:
+        branches:
+        - main
+    workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: 'x64'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          python -m pip install --upgrade pip
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip wheel setuptools
+          pip install aiohttp
+
+      - name: Run build
+        run: npm run build
+
+      - name: Publish package
+        env:
+          SERVER: ${{ secrets.PUBLISH_SERVER }}
+          KEY: ${{ secrets.PUBLISH_KEY }}
+        run: |
+          source venv/bin/activate
+          python build/publish.py
+            

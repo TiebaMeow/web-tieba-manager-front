@@ -29,3 +29,10 @@ coverage
 
 *.tsbuildinfo
 package-lock.json
+
+# build
+
+webui
+.python-version
+pyproject.toml
+uv.lock
