@@ -20,7 +20,7 @@ async function fetchHomeInfo() {
     await TokenRequest.fetch(homeInfo, {
         url: '/api/user/info'
     })
-    if (homeInfo.value && homeInfo.value.forum) {
+    if (homeInfo.value) {
         setTokenInfo(currToken.value, homeInfo.value.forum, homeInfo.value.permission)
     }
 }
