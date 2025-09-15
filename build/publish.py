@@ -1,4 +1,4 @@
-import os
+import subprocess
 import shutil
 from pathlib import Path
 
@@ -17,4 +17,6 @@ with open(REPO_DIR / ".github" / "code.txt") as f:
     code_dir.mkdir(parents=True, exist_ok=True)
 
 shutil.copytree(dist_dir, code_dir, dirs_exist_ok=True)
-os.system(f'python build/fileUploader.py --dir "{code_dir.parent}"')
+# os.system(f'python build/fileUploader.py --dir "{code_dir.parent}"')
+subprocess.run(["python", "build/fileUploader.py", "--dir", str(code_dir.parent)])
+print(f"代号 {code} 发布完成！")
