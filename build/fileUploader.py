@@ -30,28 +30,32 @@ async def upload_file(
     """
     relative_path = file_path.relative_to(base_dir)
     data = aiohttp.FormData()
-    data.add_field(
-        "file",
-        file_path.open("rb"),
-        filename=file_path.name,
-        content_type="application/octet-stream",
-    )
-
-    # print(f"{prefix}正在上传: {relative_path}...")
-
     try:
-        async with session.post(
-            UPLOAD_URL, headers=HEADERS, data=data, params={"path": str(relative_path)}
-        ) as response:
-            if response.status == 200:
-                print(f"{prefix}上传成功: {relative_path}")
-                return True
-            else:
-                error_detail = await response.text()
-                print(
-                    f"{prefix}上传失败: {relative_path}, 状态码: {response.status}, 原因: {error_detail}"
-                )
-                return False
+        with file_path.open("rb") as f:
+            data.add_field(
+                "file",
+                f,
+                filename=file_path.name,
+                content_type="application/octet-stream",
+            )
+
+            # print(f"{prefix}正在上传: {relative_path}...")
+
+            async with session.post(
+                UPLOAD_URL,
+                headers=HEADERS,
+                data=data,
+                params={"path": str(relative_path)},
+            ) as response:
+                if response.status == 200:
+                    print(f"{prefix}上传成功: {relative_path}")
+                    return True
+                else:
+                    error_detail = await response.text()
+                    print(
+                        f"{prefix}上传失败: {relative_path}, 状态码: {response.status}, 原因: {error_detail}"
+                    )
+                    return False
     except aiohttp.ClientError as e:
         print(f"上传时发生网络错误: {relative_path}, 错误: {e}")
         return False
