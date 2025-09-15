@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { getViewMode } from './lib/utils';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import message from './lib/message';
-import { currToken, deleteToken, sequenceHistoryTokens, switchTokenByHistory } from './lib/data/tokenManager';
+import { currToken, currTokenData, deleteToken, sequenceHistoryTokens, switchTokenByHistory } from './lib/data/tokenManager';
 import { DIALOG_WIDTH } from './lib/constance';
 import SideBar from './views/SideBar.vue';
 import TokenRequest from './lib/token';
 
+const router = useRouter()
 const route = useRoute()
 
 const ifShowSidebar = ref(!(getViewMode(900) === 'mobile'))
@@ -49,6 +50,11 @@ function handleDeleteToken(token: string) {
 
 function handleSwitchToken(token: string) {
     if (switchTokenByHistory(token)) {
+        if (route.meta.system && !currTokenData.value.system_access || ['login', 'register'].includes(route.name as string)) {
+            // 切换到的账号没有系统权限，且当前页面需要系统权限，或当前页面为登录注册页
+            // 则跳转到控制台首页
+            router.push('/dashboard')
+        }
         message.notify('切换成功', message.success)
         ifShowSwitch.value = false
     } else {
