@@ -6,6 +6,7 @@ type DashboardRouteRecordRaw = RouteRecordRaw & {
         title?: string
         hide?: boolean
         system?: boolean
+        noToken?: boolean
     }
 }
 
@@ -94,7 +95,7 @@ export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
         },
         component: () => import('../views/systemManagement/UserManagement.vue')
     },
-        {
+    {
         path: '/system-log',
         name: 'systemLog',
         meta: {
@@ -109,16 +110,25 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/initialize',
         name: 'initialize',
+        meta: {
+            noToken: true
+        },
         component: () => import('../views/InitializeComponent.vue')
     },
     {
         path: '/login',
         name: 'login',
+        meta: {
+            noToken: true
+        },
         component: () => import('../views/LoginComponent.vue')
     },
     {
         path: '/register',
         name: 'register',
+        meta: {
+            noToken: true
+        },
         component: () => import('../views/LoginComponent.vue')
     },
     {
@@ -132,6 +142,19 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHashHistory(import.meta.env.BASE_URL),
     routes,
+})
+
+
+import { currToken } from '../lib/data/tokenManager'
+
+router.beforeEach((to, from, next) => {
+    // noToken 默认为 false
+    const noToken = to.meta?.noToken === true;
+    if (!noToken && currToken.value === '') {
+        next({ path: '/login' });
+    } else {
+        next();
+    }
 })
 
 export default router
