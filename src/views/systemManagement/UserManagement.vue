@@ -65,7 +65,7 @@ function deleteUser(data: UserData) {
         // TODO 支持全部删光光
         return
     }
-    const target = (currUser.value?.use ? `用户${data.username}？` : '邀请码')
+    const target = (data.use ? `用户${data.username}？` : '邀请码')
 
     message.confirm(`确认删除${target}，该操作不可逆`, '提示', async () => {
         if (!usersInfo.value) {
