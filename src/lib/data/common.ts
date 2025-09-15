@@ -1,6 +1,6 @@
 import { ref } from "vue"
 import TokenRequest from "../token"
-import { setTokenInfo, currToken, SwitchTokenEvent, type UserPermission } from "./tokenManager"
+import { setTokenInfo, currToken, SwitchTokenEvent } from "./tokenManager"
 
 interface HomeInfo {
     enable: boolean
