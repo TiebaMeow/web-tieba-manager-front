@@ -27,6 +27,7 @@ async def upload_file(
         session: aiohttp.ClientSession 对象.
         file_path: 要上传的文件的绝对路径.
         base_dir: 命令行 --dir 参数指定的根目录.
+        prefix: 日志前缀，用于标识当前上传的文件序号.
     """
     relative_path = file_path.relative_to(base_dir)
     data = aiohttp.FormData()
