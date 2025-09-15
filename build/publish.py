@@ -18,9 +18,11 @@ with open(REPO_DIR / ".github" / "code.txt") as f:
 
 shutil.copytree(dist_dir, code_dir, dirs_exist_ok=True)
 # os.system(f'python build/fileUploader.py --dir "{code_dir.parent}"')
-result = subprocess.run(["python", "build/fileUploader.py", "--dir", str(code_dir.parent)])
+result = subprocess.run(
+    ["python", "build/fileUploader.py", "--dir", str(code_dir.parent)]
+)
 if result.returncode != 0:
     print("上传失败，发布流程终止。")
     exit(result.returncode)
-
-print(f"代号 {code} 发布完成！")
+else:
+    print(f"代号 {code} 发布完成！")

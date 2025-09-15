@@ -95,10 +95,14 @@ async def main():
                 break
         else:
             print("所有文件上传任务已完成。")
+            return True
 
 
 if __name__ == "__main__":
     # 确保在 Windows 上 aiohttp 可以正常运行
     if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(main())
+    if not asyncio.run(main()):
+        exit(1)
+    else:
+        exit(0)
