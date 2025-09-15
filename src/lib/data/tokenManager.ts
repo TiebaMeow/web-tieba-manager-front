@@ -79,7 +79,7 @@ function switchTokenByHistory(token: string) {
     if (historyTokens.value[token]) {
         TokenRequest.switchHost(historyTokens.value[token].host, token)
     }
-    SwitchTokenEvent.call(token || undefined) // 显示过滤 空字符串 ''
+    SwitchTokenEvent.call(token || undefined) // 显式过滤 空字符串 ''
 
     return hasOwn(historyTokens.value, token)
 }
