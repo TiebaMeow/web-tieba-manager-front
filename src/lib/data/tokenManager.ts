@@ -6,10 +6,6 @@ import Hook from '../hook';
 
 export const SwitchTokenEvent = new Hook<string | undefined>()
 
-export interface UserPermission {
-    can_edit_forum: boolean,
-    can_edit_rule_set: boolean
-}
 interface TokenData {
     host: string,
     user: string,

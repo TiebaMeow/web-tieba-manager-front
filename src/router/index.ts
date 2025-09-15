@@ -5,6 +5,7 @@ type DashboardRouteRecordRaw = RouteRecordRaw & {
     meta: {
         title?: string
         hide?: boolean
+        system?: boolean
     }
 }
 
@@ -83,6 +84,18 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
     },
 ]
 
+export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
+    {
+        path: '/user-management',
+        name: 'userManagement',
+        meta: {
+            title: '用户管理',
+            system: true
+        },
+        component: () => import('../views/systemManagement/UserManagement.vue')
+    }
+]
+
 const routes: RouteRecordRaw[] = [
     {
         path: '/initialize',
@@ -97,8 +110,9 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/dashboard',
         name: 'dashboard',
-        children: DashboardRoutes
-    }
+        children: [...DashboardRoutes, ...SystemManagementRoutes],
+        redirect: '/home',
+    },
 ]
 
 const router = createRouter({

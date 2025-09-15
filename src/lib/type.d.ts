@@ -50,3 +50,7 @@ declare interface Comment extends Content {
     type: 'comment'
 }
 
+declare interface UserPermission {
+    can_edit_forum: boolean,
+    can_edit_rule_set: boolean
+}
