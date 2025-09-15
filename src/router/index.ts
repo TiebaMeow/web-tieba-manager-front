@@ -117,6 +117,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/LoginComponent.vue')
     },
     {
+        path: '/register',
+        name: 'register',
+        component: () => import('../views/LoginComponent.vue')
+    },
+    {
         path: '/dashboard',
         name: 'dashboard',
         children: [...DashboardRoutes, ...SystemManagementRoutes],
