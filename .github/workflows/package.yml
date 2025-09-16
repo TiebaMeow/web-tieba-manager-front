@@ -108,7 +108,9 @@ jobs:
           CODE=${{ needs.build.outputs.code }}
           TAG=${{ steps.get_tag.outputs.tag }}
           ZIP_NAME="${CODE}_${TAG}_webui.zip"
-          zip -r "${ZIP_NAME}" dist
+          cd dist
+          zip -r "../${ZIP_NAME}" index.html assets info.json
+          cd ..
           echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
 
       - name: Create Draft Release
