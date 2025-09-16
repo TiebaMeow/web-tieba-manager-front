@@ -16,11 +16,11 @@ const TokenRequest = new class TokenRequest extends Requests {
         super(config)
     }
 
-    logout(force?: boolean) {
-        if (force) {
+    logout(deleteTokenHistory?: boolean) {
+        if (deleteTokenHistory) {
             deleteToken(getData<string>('access_token') || '')
-            saveData('access_token', '')
         }
+        saveData('access_token', '')
         switchTokenByHistory('')
         router.push('/login')
     }

@@ -25,17 +25,14 @@ const isDashboardRoute = computed(() => {
 })
 
 
-function logout(deleteHistory: boolean = false, text: string = '即将登出') {
+function logout(deleteTokenHistory: boolean = false, text: string = '即将登出') {
     message.confirm(
         text, '提示',
         () => {
-            if (deleteHistory) {
-                deleteToken(currToken.value)
-            }
             if (ifShowSwitch.value) {
                 ifShowSwitch.value = false
             }
-            TokenRequest.logout(true)
+            TokenRequest.logout(deleteTokenHistory)
         }
     )
 }

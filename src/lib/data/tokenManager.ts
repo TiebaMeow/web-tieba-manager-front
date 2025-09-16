@@ -33,7 +33,7 @@ const sequenceHistoryTokens = computed(() => {
 
 export const currToken = ref(getData<string>('access_token') || '');
 export const currTokenData = computed(() => {
-    return historyTokens.value[currToken.value] || null
+    return historyTokens.value[currToken.value] || {}
 })
 
 function saveHistoryTokens() {
