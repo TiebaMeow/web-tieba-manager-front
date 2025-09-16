@@ -18,7 +18,10 @@ const TokenRequest = new class TokenRequest extends Requests {
 
     logout(deleteTokenHistory?: boolean) {
         if (deleteTokenHistory) {
-            deleteToken(getData<string>('access_token') || '')
+            const token = getData<string>('access_token') || ''
+            if (token) {
+                deleteToken(token)
+            }
         }
         saveData('access_token', '')
         switchTokenByHistory('')
