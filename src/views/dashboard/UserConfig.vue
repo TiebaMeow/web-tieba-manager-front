@@ -72,7 +72,7 @@ async function setUserConfig() {
                 <el-form label-width="auto">
                     <el-form-item label="扫描贴吧">
                         <el-input v-model="userConfig.forum.fname"
-                            :disabled="!currTokenData.permission?.can_edit_forum && !currTokenData.system_access"></el-input>
+                            :disabled="!currTokenData || !currTokenData.permission?.can_edit_forum && !currTokenData.system_access"></el-input>
                     </el-form-item>
                     <el-form-item label="封禁时长">
                         <el-input-number v-model="userConfig.forum.block_day">

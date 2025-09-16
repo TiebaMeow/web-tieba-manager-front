@@ -32,7 +32,7 @@ const sequenceHistoryTokens = computed(() => {
 });
 
 export const currToken = ref(getData<string>('access_token') || '');
-export const currTokenData = computed(() => {
+export const currTokenData = computed<TokenData | null>(() => {
     return historyTokens.value[currToken.value] || null
 })
 

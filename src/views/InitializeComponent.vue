@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter()
 const request = new Requests({
-    host: 'http://127.0.0.1:36799'
+    host: location.origin
 })
 
 const initializeInfo = ref<{ need_user: boolean, need_system: boolean } | null>(null)

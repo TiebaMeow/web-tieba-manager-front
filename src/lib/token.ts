@@ -6,9 +6,8 @@ import type { RequestsConfig, RequestsOptions } from './request'
 
 import message from './message'
 import router from '../router'
-import { getData } from './utils'
-import { saveData } from './utils'
-import { setToken, currToken, SwitchTokenEvent, switchTokenByHistory } from './data/tokenManager'
+import { getData, saveData } from './utils'
+import { setToken, currToken, SwitchTokenEvent, switchTokenByHistory, deleteToken } from './data/tokenManager'
 
 
 
@@ -17,10 +16,14 @@ const TokenRequest = new class TokenRequest extends Requests {
         super(config)
     }
 
-    logout(deleteToken?: boolean) {
-        if (deleteToken) {
-            saveData('access_token', '')
+    logout(deleteTokenHistory?: boolean) {
+        if (deleteTokenHistory) {
+            const token = getData<string>('access_token') || ''
+            if (token) {
+                deleteToken(token)
+            }
         }
+        saveData('access_token', '')
         switchTokenByHistory('')
         router.push('/login')
     }

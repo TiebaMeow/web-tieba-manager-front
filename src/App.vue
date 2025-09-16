@@ -25,17 +25,14 @@ const isDashboardRoute = computed(() => {
 })
 
 
-function logout(deleteHistory: boolean = false, text: string = '即将登出') {
+function logout(deleteTokenHistory: boolean = false, text: string = '即将登出') {
     message.confirm(
         text, '提示',
         () => {
-            if (deleteHistory) {
-                deleteToken(currToken.value)
-            }
             if (ifShowSwitch.value) {
                 ifShowSwitch.value = false
             }
-            TokenRequest.logout(true)
+            TokenRequest.logout(deleteTokenHistory)
         }
     )
 }
@@ -50,7 +47,7 @@ function handleDeleteToken(token: string) {
 
 function handleSwitchToken(token: string) {
     if (switchTokenByHistory(token)) {
-        if (route.meta.system && !currTokenData.value.system_access || ['login', 'register'].includes(route.name as string)) {
+        if (route.meta.system && !currTokenData.value?.system_access || ['login', 'register'].includes(route.name as string)) {
             // 切换到的账号没有系统权限，且当前页面需要系统权限，或当前页面为登录注册页
             // 则跳转到控制台首页
             router.push('/dashboard')

@@ -57,7 +57,7 @@ async function setUserInfo() {
 }
 
 function deleteUser(data: UserData) {
-    if (currTokenData.value.user === data.username) {
+    if (currTokenData.value && currTokenData.value.user === data.username) {
         message.notify('不能删除当前登录的用户', message.error)
         return
     } else if (data.use && usersInfo.value && usersInfo.value.filter(info => info.use).length <= 1) {
