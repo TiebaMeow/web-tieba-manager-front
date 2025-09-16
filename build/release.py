@@ -25,7 +25,7 @@ async def upload_asset(token: str, upload_url: str, asset_path: str):
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json",
-        "Content-Type": "application/zip",
+        "Content-Type": "application/octet-stream",
     }
 
     print(f"Uploading {asset_name} to {url}...")
