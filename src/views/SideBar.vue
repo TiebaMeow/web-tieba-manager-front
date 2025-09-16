@@ -40,15 +40,18 @@ const visibleSystemRoutes = SystemManagementRoutes.filter((value) => !value.meta
                 <div class="sidebar">
                     <div class="title">
                         {{ getHost() }}<br />
-                        {{ currTokenData.user }}<template v-if="currTokenData.forum">@{{
-                            currTokenData.forum }}</template>
+                        <template v-if="currTokenData">
+                            {{ currTokenData.user }}<template v-if="currTokenData.forum">@{{
+                                currTokenData.forum }}</template>
+                        </template>
+                        <template v-else>未登录</template>
                     </div>
                     <div v-for="routeRaw in visibleRoutes" :key="routeRaw.name" class="bar"
                         :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"
                         @click="goto(routeRaw.path)">
                         {{ routeRaw.meta.title }}
                     </div>
-                    <template v-if="currTokenData.system_access">
+                    <template v-if="currTokenData && currTokenData.system_access">
                         <el-divider style="margin: 0;"></el-divider>
                         <div v-for="routeRaw in visibleSystemRoutes" :key="routeRaw.name" class="bar"
                             :class="route.path === routeRaw.path ? 'bar-active' : 'bar-inactive'"

@@ -78,6 +78,9 @@ interface RuleSet {
 const ruleSets = ref<RefResponse<RuleSet[]>>(undefined)
 
 export const canEdit = computed(() => {
+    if (!currTokenData.value) {
+        return false
+    }
     return currTokenData.value.permission?.can_edit_rule_set || currTokenData.value.system_access
 })
 
