@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 import platform
 
-import aiohttp
+import aiohttp # type: ignore
 
 KEY = os.getenv("KEY")
 SERVER = os.getenv("SERVER")
