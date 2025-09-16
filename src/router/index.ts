@@ -137,6 +137,13 @@ const routes: RouteRecordRaw[] = [
         children: [...DashboardRoutes, ...SystemManagementRoutes],
         redirect: '/home',
     },
+    // 捕获所有未定义路由，统一重定向到 /home
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        redirect: '/home',
+        meta: {}
+    },
 ]
 
 const router = createRouter({
