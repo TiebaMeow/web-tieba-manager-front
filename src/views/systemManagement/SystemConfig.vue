@@ -4,6 +4,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import TokenRequest from '@/lib/token'
 import message from '@/lib/message'
 import { onBeforeRouteLeave } from 'vue-router'
+import FORM_RULES from '@/lib/data/forumRules'
 
 const edited = ref(false)
 const confirmedEditServerConfig = ref(false)
@@ -22,24 +23,8 @@ const formRules = reactive<FormRules>({
         { required: true, message: '请输入数据库文件路径', trigger: 'blur' },
         { pattern: /^[^<>:"|?*]+$/, message: '路径不能包含非法字符', trigger: 'blur' }
     ],
-    'database.host': [
-        { required: true, message: '请输入主机地址', trigger: 'blur' },
-        { pattern: /^(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3})$/, message: '请输入合法的IP地址或域名', trigger: 'blur' }
-    ],
-    'database.port': [
-        { required: true, message: '请输入端口', trigger: 'blur' },
-        { type: 'number', message: '端口必须是数字', trigger: 'blur' },
-        {
-            validator: (_rule, value, callback) => {
-                if (value >= 1 && value <= 65535) {
-                    callback()
-                } else {
-                    callback(new Error('端口范围应在 1-65535 之间'))
-                }
-            },
-            trigger: 'blur'
-        }
-    ],
+    'database.host': FORM_RULES.hostname,
+    'database.port': FORM_RULES.port,
     'database.username': [
         { required: true, message: '请输入用户名', trigger: 'blur' },
         { min: 1, max: 63, message: '长度应为 1 到 63 个字符', trigger: 'blur' },
@@ -54,29 +39,9 @@ const formRules = reactive<FormRules>({
         { min: 1, max: 63, message: '长度应为 1 到 63 个字符', trigger: 'blur' },
         { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字和下划线', trigger: 'blur' }
     ],
-    'server.host': [
-        { required: true, message: '请输入主机地址', trigger: 'blur' },
-        { pattern: /^(?:(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3})$/, message: '请输入合法的IP地址或域名', trigger: 'blur' }
-    ],
-    'server.port': [
-        { required: true, message: '请输入端口', trigger: 'blur' },
-        { type: 'number', message: '端口必须是数字', trigger: 'blur' },
-        {
-            validator: (_rule, value, callback) => {
-                if (value >= 1 && value <= 65535) {
-                    callback()
-                } else {
-                    callback(new Error('端口范围应在 1-65535 之间'))
-                }
-            },
-            trigger: 'blur'
-        }
-    ],
-    'server.key': [
-        { required: true, message: '请输入密钥', trigger: 'blur' },
-        { min: 1, max: 32, message: '长度应为 1 到 32 个字符', trigger: 'blur' },
-        { pattern: /^[a-zA-Z0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+$/, message: '只能包含英文字符、数字和常见符号', trigger: 'blur' }
-    ],
+    'server.host': FORM_RULES.hostname,
+    'server.port': FORM_RULES.port,
+    'server.key': [{ required: true, message: '请输入密钥', trigger: 'blur' }, ...(Array.isArray(FORM_RULES.key) ? FORM_RULES.key : [])],
     'server.token_expire_days': [
         { required: true, message: '请输入登录有效期', trigger: 'blur' },
         { type: 'number', min: 0, message: '有效期必须为非负整数', trigger: 'blur' }

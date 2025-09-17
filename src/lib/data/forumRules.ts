@@ -37,6 +37,11 @@ const FORM_RULES: FormRules = {
     code: [
         { required: true, message: '请输入邀请码', trigger: 'blur' },
         { min: 1, max: 32, message: '长度应为 1 到 32 个字符', trigger: 'blur' }
+    ],
+    hostname: [
+        { required: true, message: '请输入主机地址', trigger: 'blur' },
+        { pattern: /^(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?|(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|[0-9])(?:\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|[0-9])){3})$/, message: '请输入合法的IP地址或域名', trigger: 'blur' }
+
     ]
 }
 
