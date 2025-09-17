@@ -104,6 +104,15 @@ export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
         },
         component: () => import('../views/LogComponent.vue')
     },
+    {
+        path: '/system-config',
+        name: 'systemConfig',
+        meta: {
+            title: '系统设置',
+            system: true
+        },
+        component: () => import('../views/systemManagement/SystemConfig.vue')
+    },
 ]
 
 const routes: RouteRecordRaw[] = [

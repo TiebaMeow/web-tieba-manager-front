@@ -25,10 +25,10 @@ const emit = defineEmits<{
         <el-form label-width="auto">
             <el-form-item label="天数">
                 <el-input-number v-model="data.options.day" placeholder="默认为设置天数" :min="1" style="width:200px;"
-                    :disabled="!canEdit"></el-input-number>
+                    :disabled="!canEdit" @change="emit('change')"></el-input-number>
             </el-form-item>
             <el-form-item label="理由">
-                <el-input v-model="data.options.reason" clearable placeholder="默认为设置理由" :disabled="!canEdit"></el-input>
+                <el-input v-model="data.options.reason" clearable placeholder="默认为设置理由" :disabled="!canEdit" @change="emit('change')"></el-input>
             </el-form-item>
         </el-form>
     </CustomCard>

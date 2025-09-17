@@ -19,24 +19,36 @@ import RULE_COMPONENTS from '../ruleTemplate';
 import { CUSTOM_OPERATION_OPTIONS, OPERATION_OPTIONS, type Operation } from '@/lib/data/operation';
 import OPERATION_COMPONENTS from '../operationTemplate';
 
-onBeforeRouteLeave(() => {
+function confirmLeave(next: (to?: string | boolean) => void) {
     if (edited.value) {
-        const answer = window.confirm(
-            '是否离开，有更改未保存！'
-        )
-        // 取消导航并停留在同一页面上
-        if (!answer) return false
+        message.confirm('设置未保存，确认离开？', '提示', () => {
+            next()
+        }, () => {
+            next(false)
+        })
+    } else {
+        next()
     }
+}
+
+onBeforeRouteLeave((to, from, next) => {
+    confirmLeave(next)
 })
 
-onBeforeRouteUpdate(async (to, from) => {
+onBeforeRouteUpdate((to, from, next) => {
     if (to.params.id !== from.params.id) {
-        ruleSetSeq.value = parseInt(to.params.id as string)
-        await getRuleSetCopy()
-        edited.value = false
-        customOpeations.value = []
-        activeEdit.value = 'rule'
-
+        confirmLeave(async (res) => {
+            if (res === false) {
+                next(false)
+                return
+            }
+            ruleSetSeq.value = parseInt(to.params.id as string)
+            await getRuleSetCopy()
+            edited.value = false
+            customOperations.value = []
+            activeEdit.value = 'rule'
+            next()
+        })
     }
 })
 
@@ -62,7 +74,7 @@ function newRuleSet(): boolean {
 const route = useRoute()
 const ruleSetSeq = ref(parseInt(route.params.id as string))
 const ruleSetDataCopy = ref<RuleSet | undefined>(undefined);
-const customOpeations = ref<Operation[]>([])
+const customOperations = ref<Operation[]>([])
 const activeEdit = ref<'rule' | 'operation'>('rule')
 const edited = ref(false)
 
@@ -71,13 +83,13 @@ async function getRuleSetCopy() {
     if (newRuleSet()) {
         return
     }
-    if (!ruleSets.value || !ruleSets.value.length || !ruleSetSeq.value || !(ruleSetSeq.value <= ruleSets.value.length)) {
+    if (!ruleSets.value || !ruleSets.value[ruleSetSeq.value - 1]) {
         router.push('/rule-sets')
         return
     }
     ruleSetDataCopy.value = copy(ruleSets.value[ruleSetSeq.value - 1])
     if (Array.isArray(ruleSetDataCopy.value.operations)) {
-        customOpeations.value = ruleSetDataCopy.value.operations
+        customOperations.value = ruleSetDataCopy.value.operations
         ruleSetDataCopy.value.operations = 'custom'
     }
 }
@@ -97,7 +109,7 @@ function saveRuleSet() {
     }
     if (ruleSetDataCopy.value && ruleSets.value) {
         if (ruleSetDataCopy.value.operations === 'custom') {
-            ruleSetDataCopy.value.operations = customOpeations.value
+            ruleSetDataCopy.value.operations = customOperations.value
         }
         ruleSetDataCopy.value.last_modify = Math.floor(Date.now() / 1000);
         if (ifNew.value) {
@@ -156,6 +168,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     })
                     ifShowAddRule = false;
                     addRuleOption = {};
+                    edited = true
                 } else {
                     message.notify('请先选择规则类型和子类型', message.warning)
                 }
@@ -173,13 +186,14 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
         <div style="display:flex;justify-content: flex-end; margin-top: 20px;">
             <el-button type="primary" @click="() => {
                 if (addOperationOption) {
-                    customOpeations.push({
+                    customOperations.push({
                         type: addOperationOption,
                         direct: false,
                         options: {}
                     })
                     ifShowAddOperation = false
                     addOperationOption = undefined
+                    edited = true
                 } else {
                     message.notify('请选择操作', message.warning)
                 }
@@ -191,11 +205,11 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             <h1>{{ canEdit ? '编辑' : '查看' }}规则</h1>
             <el-form label-width="auto">
                 <el-form-item label="规则名">
-                    <el-input v-model="ruleSetDataCopy.name" :disabled="!canEdit"></el-input>
+                    <el-input v-model="ruleSetDataCopy.name" :disabled="!canEdit" @change="edited = true"></el-input>
                 </el-form-item>
                 <el-form-item label="操作" v-show="!ruleSetDataCopy.whitelist">
                     <el-select v-model="ruleSetDataCopy.operations" placeholder="请选择操作" @change="() => {
-                        customOpeations = []
+                        customOperations = []
                         edited = true
                         activeEdit = 'rule'
                     }" :disabled="!canEdit">
@@ -205,7 +219,8 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 </el-form-item>
             </el-form>
             <div class="config-bar" v-show="!ruleSetDataCopy.whitelist">
-                <el-checkbox v-model="ruleSetDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit" />
+                <el-checkbox v-model="ruleSetDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit"
+                    @change="edited = true" />
             </div>
             <div style="display: flex;  align-items: flex-end;">
                 <template v-if="canEdit">
@@ -241,10 +256,10 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 </div>
             </template>
             <template v-else>
-                <template v-if="customOpeations.length">
-                    <template v-for="(operation, seq) in customOpeations" :key="seq">
+                <template v-if="customOperations.length">
+                    <template v-for="(operation, seq) in customOperations" :key="seq">
                         <component :is="OPERATION_COMPONENTS[operation.type]" @change="edited = true"
-                            v-model="customOpeations[seq]" @delete="customOpeations.splice(seq, 1)" />
+                            v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
                     </template>
                 </template>
                 <div v-else class="center" style="flex-wrap: wrap;">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import { getRuleSets, setRuleSets, canEdit } from '@/lib/data/rule';
 import router from '@/router';
 import { getViewMode } from '@/lib/utils';
@@ -11,18 +11,17 @@ const viewMode = getViewMode(600)
 const ruleSets = getRuleSets()
 const edited = ref(false)
 
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave((to, from, next) => {
     if (edited.value) {
-        const answer = window.confirm(
-            '是否离开，有更改未保存！'
-        )
-        // 取消导航并停留在同一页面上
-        if (!answer) return false
+        message.confirm('设置未保存，确认离开？', '提示', () => {
+            edited.value = false
+            next()
+        }, () => {
+            next(false)
+        })
+    } else {
+        next()
     }
-})
-
-onBeforeRouteUpdate(() => {
-    edited.value = false
 })
 
 

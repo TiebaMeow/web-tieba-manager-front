@@ -28,14 +28,14 @@ const emit = defineEmits<{
                     起始
                 </p>
                 <el-date-picker v-model="data.options.start" type="datetime" placeholder="选填"
-                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" />
+                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" @change="emit('change')" />
             </div>
             <div class="bar">
                 <p>
                     结束
                 </p>
                 <el-date-picker v-model="data.options.end" type="datetime" placeholder="选填"
-                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" />
+                    value-format="YYYY-MM-DD HH:mm:ss" :disabled="!canEdit" @change="emit('change')" />
             </div>
         </div>
     </CustomCard>

@@ -21,7 +21,7 @@ const emit = defineEmits<{
 <template>
     <CustomCard v-if="data" :name="ruleInfoDict[data.type].name" @delete="emit('delete')">
         <div style="display: flex; flex-wrap: wrap; padding: 0 20px;">
-            <el-select v-model="data.options.value" :disabled="!canEdit">
+            <el-select v-model="data.options.value" :disabled="!canEdit" @change="emit('change')">
                 <el-option v-for="(name, value) in ruleInfoDict[data.type].values" :key="value" :value="value"
                     :label="name" />
             </el-select>
