@@ -45,7 +45,7 @@ onBeforeRouteUpdate((to, from, next) => {
             ruleSetSeq.value = parseInt(to.params.id as string)
             await getRuleSetCopy()
             edited.value = false
-            customOpeations.value = []
+            customOperations.value = []
             activeEdit.value = 'rule'
             next()
         })
@@ -74,7 +74,7 @@ function newRuleSet(): boolean {
 const route = useRoute()
 const ruleSetSeq = ref(parseInt(route.params.id as string))
 const ruleSetDataCopy = ref<RuleSet | undefined>(undefined);
-const customOpeations = ref<Operation[]>([])
+const customOperations = ref<Operation[]>([])
 const activeEdit = ref<'rule' | 'operation'>('rule')
 const edited = ref(false)
 
@@ -89,7 +89,7 @@ async function getRuleSetCopy() {
     }
     ruleSetDataCopy.value = copy(ruleSets.value[ruleSetSeq.value - 1])
     if (Array.isArray(ruleSetDataCopy.value.operations)) {
-        customOpeations.value = ruleSetDataCopy.value.operations
+        customOperations.value = ruleSetDataCopy.value.operations
         ruleSetDataCopy.value.operations = 'custom'
     }
 }
@@ -109,7 +109,7 @@ function saveRuleSet() {
     }
     if (ruleSetDataCopy.value && ruleSets.value) {
         if (ruleSetDataCopy.value.operations === 'custom') {
-            ruleSetDataCopy.value.operations = customOpeations.value
+            ruleSetDataCopy.value.operations = customOperations.value
         }
         ruleSetDataCopy.value.last_modify = Math.floor(Date.now() / 1000);
         if (ifNew.value) {
@@ -186,7 +186,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
         <div style="display:flex;justify-content: flex-end; margin-top: 20px;">
             <el-button type="primary" @click="() => {
                 if (addOperationOption) {
-                    customOpeations.push({
+                    customOperations.push({
                         type: addOperationOption,
                         direct: false,
                         options: {}
@@ -209,7 +209,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 </el-form-item>
                 <el-form-item label="操作" v-show="!ruleSetDataCopy.whitelist">
                     <el-select v-model="ruleSetDataCopy.operations" placeholder="请选择操作" @change="() => {
-                        customOpeations = []
+                        customOperations = []
                         edited = true
                         activeEdit = 'rule'
                     }" :disabled="!canEdit">
@@ -256,10 +256,10 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 </div>
             </template>
             <template v-else>
-                <template v-if="customOpeations.length">
-                    <template v-for="(operation, seq) in customOpeations" :key="seq">
+                <template v-if="customOperations.length">
+                    <template v-for="(operation, seq) in customOperations" :key="seq">
                         <component :is="OPERATION_COMPONENTS[operation.type]" @change="edited = true"
-                            v-model="customOpeations[seq]" @delete="customOpeations.splice(seq, 1)" />
+                            v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
                     </template>
                 </template>
                 <div v-else class="center" style="flex-wrap: wrap;">
