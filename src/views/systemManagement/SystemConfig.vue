@@ -9,7 +9,7 @@ const confirmedEditServerConfig = ref(false)
 
 onBeforeRouteLeave((to, from, next) => {
     if (edited.value) {
-        message.confirm('配置未保存，确认离开？', '提示', () => {
+        message.confirm('设置未保存，确认离开？', '提示', () => {
             next()
         }, () => {
             next(false)

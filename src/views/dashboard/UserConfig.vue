@@ -4,7 +4,21 @@ import TokenRequest from '@/lib/token'
 import { fetchHomeInfo } from '@/lib/data/common'
 import { ref, onUnmounted } from 'vue'
 import { currTokenData, SwitchTokenEvent } from '@/lib/data/tokenManager'
+import { onBeforeRouteLeave } from 'vue-router'
 
+const edited = ref(false)
+
+onBeforeRouteLeave((to, from, next) => {
+    if (edited.value) {
+        message.confirm('设置未保存，确认离开？', '提示', () => {
+            next()
+        }, () => {
+            next(false)
+        })
+    } else {
+        next()
+    }
+})
 
 interface ForumConfig {
     block_day: number
@@ -72,10 +86,11 @@ async function setUserConfig() {
                 <el-form label-width="auto">
                     <el-form-item label="扫描贴吧">
                         <el-input v-model="userConfig.forum.fname"
-                            :disabled="!currTokenData || !currTokenData.permission?.can_edit_forum && !currTokenData.system_access"></el-input>
+                            :disabled="!currTokenData || !currTokenData.permission?.can_edit_forum && !currTokenData.system_access"
+                            @change="edited = true"></el-input>
                     </el-form-item>
                     <el-form-item label="封禁时长">
-                        <el-input-number v-model="userConfig.forum.block_day">
+                        <el-input-number v-model="userConfig.forum.block_day" @change="edited = true">
                             <template #suffix>
                                 <span>
                                     天
@@ -84,7 +99,7 @@ async function setUserConfig() {
                         </el-input-number>
                     </el-form-item>
                     <el-form-item label="封禁理由">
-                        <el-input v-model="userConfig.forum.block_reason"></el-input>
+                        <el-input v-model="userConfig.forum.block_reason" @change="edited = true"></el-input>
                     </el-form-item>
                 </el-form>
             </div>
@@ -94,10 +109,10 @@ async function setUserConfig() {
                 </h3>
                 <el-form label-width="auto">
                     <el-form-item label="BDUSS">
-                        <el-input v-model="userConfig.forum.bduss" show-password></el-input>
+                        <el-input v-model="userConfig.forum.bduss" show-password @change="edited = true"></el-input>
                     </el-form-item>
                     <el-form-item label="STOKEN">
-                        <el-input v-model="userConfig.forum.stoken" show-password></el-input>
+                        <el-input v-model="userConfig.forum.stoken" show-password @change="edited = true"></el-input>
                     </el-form-item>
                 </el-form>
             </div>
@@ -107,10 +122,11 @@ async function setUserConfig() {
                 </h3>
                 <el-form label-width="auto">
                     <el-form-item label="强制确认">
-                        <el-checkbox v-model="userConfig.process.mandatory_confirm"></el-checkbox>
+                        <el-checkbox v-model="userConfig.process.mandatory_confirm"
+                            @change="edited = true"></el-checkbox>
                     </el-form-item>
                     <el-form-item label="优化处理">
-                        <el-checkbox v-model="userConfig.process.fast_process"></el-checkbox>
+                        <el-checkbox v-model="userConfig.process.fast_process" @change="edited = true"></el-checkbox>
                         <el-tooltip content="当有规则匹配时，跳过后续规则，可优化性能" placement="top">
                             <el-icon color="gray" style="margin-left: 10px;">
                                 <i-ep-question-filled />
@@ -118,13 +134,15 @@ async function setUserConfig() {
                         </el-tooltip>
                     </el-form-item>
                     <el-form-item label="处理类型">
-                        <el-checkbox v-model="userConfig.forum.thread" label="主题帖"></el-checkbox>
-                        <el-checkbox v-model="userConfig.forum.post" label="回复"></el-checkbox>
-                        <el-checkbox v-model="userConfig.forum.comment" label="楼中楼"></el-checkbox>
+                        <el-checkbox v-model="userConfig.forum.thread" label="主题帖"
+                            @change="edited = true"></el-checkbox>
+                        <el-checkbox v-model="userConfig.forum.post" label="回复" @change="edited = true"></el-checkbox>
+                        <el-checkbox v-model="userConfig.forum.comment" label="楼中楼"
+                            @change="edited = true"></el-checkbox>
                     </el-form-item>
                     <el-form-item label="处理有效期">
                         <el-input-number style="width: 120px;" v-model="userConfig.process.content_validate_expire"
-                            :controls="false">
+                            :controls="false" @change="edited = true">
                             <template #suffix>
                                 <span>
                                     秒
@@ -139,7 +157,7 @@ async function setUserConfig() {
                     </el-form-item>
                     <el-form-item label="确认有效期">
                         <el-input-number style="width: 120px;" v-model="userConfig.process.confirm_expire"
-                            :controls="false">
+                            :controls="false" @change="edited = true">
                             <template #suffix>
                                 <span>
                                     秒
