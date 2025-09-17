@@ -106,16 +106,23 @@ const setUserConfig = async () => {
         return
     }
     if (!formRef.value) return
-    await formRef.value.validate((valid) => {
+    await formRef.value.validate(async (valid) => {
         if (valid && userConfig.value) {
-            TokenRequest.post({
-                url: '/api/config/set_user',
-                data: userConfig.value
-            }).then(() => {
-                message.notify('保存成功', message.success)
-                edited.value = false
-                fetchHomeInfo()
-            })
+            try {
+                const response = await TokenRequest.post<BaseResponse<boolean>>({
+                    url: '/api/config/set_user',
+                    data: userConfig.value
+                })
+                if (response.data.code === 200) {
+                    message.notify('保存成功', message.success)
+                    edited.value = false
+                    fetchHomeInfo()
+                } else {
+                    message.notify(`保存失败：${response.data.message}`, message.error)
+                }
+            } catch (error) {
+                message.notify(`保存失败：${error}`, message.error)
+            }
         }
     })
 }
