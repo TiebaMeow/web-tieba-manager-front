@@ -5,43 +5,27 @@ import { fetchHomeInfo } from '@/lib/data/common'
 import { ref, onUnmounted } from 'vue'
 import { currTokenData, SwitchTokenEvent } from '@/lib/data/tokenManager'
 import { onBeforeRouteLeave } from 'vue-router'
-
-const edited = ref(false)
-
-onBeforeRouteLeave((to, from, next) => {
-    if (edited.value) {
-        message.confirm('设置未保存，确认离开？', '提示', () => {
-            next()
-        }, () => {
-            next(false)
-        })
-    } else {
-        next()
-    }
-})
-
-interface ForumConfig {
-    block_day: number
-    block_reason: string
-    bduss: string
-    stoken: string
-    fname: string
-    thread: boolean
-    post: boolean
-    comment: boolean
-}
-
-interface ProcessConfig {
-    mandatory_confirm: boolean
-    fast_process: boolean
-    confirm_expire: number
-    content_validate_expire: number
-}
+import type { FormInstance, FormRules } from 'element-plus'
 
 interface UserConfig {
-    forum: ForumConfig
-    process: ProcessConfig
+    forum: {
+        fname: string;
+        block_day: number;
+        block_reason: string;
+        bduss: string;
+        stoken: string;
+        thread: boolean;
+        post: boolean;
+        comment: boolean;
+    };
+    process: {
+        mandatory_confirm: boolean;
+        fast_process: boolean;
+        content_validate_expire: number;
+        confirm_expire: number;
+    };
 }
+
 
 const userConfig = ref<RefResponse<UserConfig>>(undefined)
 TokenRequest.fetch(userConfig, {
@@ -58,38 +42,119 @@ onUnmounted(SwitchTokenEvent.on((token) => {
     }
 }))
 
+const edited = ref(false)
 
-async function setUserConfig() {
+const formRef = ref<FormInstance>()
+
+const rules = ref<FormRules>({
+    'forum.fname': [
+        { max: 31, message: '长度不能超过31', trigger: 'blur' },
+        {
+            validator: (rule, value, callback) => {
+                if (value && value.endsWith('吧')) {
+                    return callback(new Error('无需加上吧后缀'))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    'forum.block_day': [
+        { type: 'number', min: 1, max: 90, message: '数值范围为1-90', trigger: 'blur' }
+    ],
+    'forum.bduss': [
+        {
+            validator: (rule, value, callback) => {
+                if (!value) {
+                    return callback()
+                }
+                if (value.length !== 192 && value.length !== 29) {
+                    // 29为打码后数据
+                    return callback(new Error('BDUSS长度必须为192'))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    'forum.stoken': [
+        {
+            validator: (rule, value, callback) => {
+                if (!value) {
+                    return callback()
+                }
+                if (value.length !== 64 && value.length !== 20) {
+                    // 20为打码后数据
+                    return callback(new Error('STOKEN长度必须为64'))
+                }
+                callback()
+            },
+            trigger: 'blur'
+        }
+    ],
+    'process.content_validate_expire': [
+        { type: 'number', min: 1, message: '数值需大于0', trigger: 'blur' }
+    ],
+    'process.confirm_expire': [
+        { type: 'number', min: 1, message: '数值需大于0', trigger: 'blur' }
+    ]
+})
+
+const setUserConfig = async () => {
     if (!userConfig.value) {
         message.notify('设置未加载，无法保存', message.error)
         return
     }
-    const response = await TokenRequest.post<BaseResponse<boolean>>({
-        url: '/api/config/set_user',
-        data: userConfig.value
+    if (!formRef.value) return
+    await formRef.value.validate(async (valid) => {
+        if (valid && userConfig.value) {
+            try {
+                const response = await TokenRequest.post<BaseResponse<boolean>>({
+                    url: '/api/config/set_user',
+                    data: userConfig.value
+                })
+                if (response.data.code === 200) {
+                    message.notify('保存成功', message.success)
+                    edited.value = false
+                    fetchHomeInfo()
+                } else {
+                    message.notify(`保存失败：${response.data.message}`, message.error)
+                }
+            } catch (error) {
+                message.notify(`保存失败：${error}`, message.error)
+            }
+        } else {
+            message.notify('请检查表单是否填写正确', message.error)
+        }
     })
-    if (response.data.code === 200) {
-        message.notify('保存成功', message.success)
-        fetchHomeInfo()
-    } else {
-        message.notify('保存失败: ' + response.data.message, message.error)
-    }
 }
+
+onBeforeRouteLeave((to, from, next) => {
+    if (edited.value) {
+        message.confirm('设置未保存，确认离开？', '提示', () => {
+            next()
+        }, () => {
+            next(false)
+        })
+    } else {
+        next()
+    }
+})
 
 </script>
 
 <template>
     <div style="max-width: 1000px; flex-grow: 1;" v-if="userConfig">
-        <div style="max-width: 600px;">
-            <div>
-                <h3>贴吧设置</h3>
-                <el-form label-width="auto">
-                    <el-form-item label="扫描贴吧">
+        <el-form ref="formRef" :model="userConfig" :rules="rules" label-width="auto">
+            <div style="max-width: 600px;">
+                <div>
+                    <h3>贴吧设置</h3>
+                    <el-form-item label="扫描贴吧" prop="forum.fname">
                         <el-input v-model="userConfig.forum.fname"
                             :disabled="!currTokenData || !currTokenData.permission?.can_edit_forum && !currTokenData.system_access"
                             @change="edited = true"></el-input>
                     </el-form-item>
-                    <el-form-item label="封禁时长">
+                    <el-form-item label="封禁时长" prop="forum.block_day">
                         <el-input-number v-model="userConfig.forum.block_day" @change="edited = true">
                             <template #suffix>
                                 <span>
@@ -98,34 +163,30 @@ async function setUserConfig() {
                             </template>
                         </el-input-number>
                     </el-form-item>
-                    <el-form-item label="封禁理由">
+                    <el-form-item label="封禁理由" prop="forum.block_reason">
                         <el-input v-model="userConfig.forum.block_reason" @change="edited = true"></el-input>
                     </el-form-item>
-                </el-form>
-            </div>
-            <div>
-                <h3>
-                    账号设置
-                </h3>
-                <el-form label-width="auto">
-                    <el-form-item label="BDUSS">
+                </div>
+                <div>
+                    <h3>
+                        账号设置
+                    </h3>
+                    <el-form-item label="BDUSS" prop="forum.bduss">
                         <el-input v-model="userConfig.forum.bduss" show-password @change="edited = true"></el-input>
                     </el-form-item>
-                    <el-form-item label="STOKEN">
+                    <el-form-item label="STOKEN" prop="forum.stoken">
                         <el-input v-model="userConfig.forum.stoken" show-password @change="edited = true"></el-input>
                     </el-form-item>
-                </el-form>
-            </div>
-            <div>
-                <h3>
-                    处理设置
-                </h3>
-                <el-form label-width="auto">
-                    <el-form-item label="强制确认">
+                </div>
+                <div>
+                    <h3>
+                        处理设置
+                    </h3>
+                    <el-form-item label="强制确认" prop="process.mandatory_confirm">
                         <el-checkbox v-model="userConfig.process.mandatory_confirm"
                             @change="edited = true"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="优化处理">
+                    <el-form-item label="优化处理" prop="process.fast_process">
                         <el-checkbox v-model="userConfig.process.fast_process" @change="edited = true"></el-checkbox>
                         <el-tooltip content="当有规则匹配时，跳过后续规则，可优化性能" placement="top">
                             <el-icon color="gray" style="margin-left: 10px;">
@@ -140,7 +201,7 @@ async function setUserConfig() {
                         <el-checkbox v-model="userConfig.forum.comment" label="楼中楼"
                             @change="edited = true"></el-checkbox>
                     </el-form-item>
-                    <el-form-item label="处理有效期">
+                    <el-form-item label="处理有效期" prop="process.content_validate_expire">
                         <el-input-number style="width: 120px;" v-model="userConfig.process.content_validate_expire"
                             :controls="false" @change="edited = true">
                             <template #suffix>
@@ -155,7 +216,7 @@ async function setUserConfig() {
                             </el-icon>
                         </el-tooltip>
                     </el-form-item>
-                    <el-form-item label="确认有效期">
+                    <el-form-item label="确认有效期" prop="process.confirm_expire">
                         <el-input-number style="width: 120px;" v-model="userConfig.process.confirm_expire"
                             :controls="false" @change="edited = true">
                             <template #suffix>
@@ -170,11 +231,11 @@ async function setUserConfig() {
                             </el-icon>
                         </el-tooltip>
                     </el-form-item>
-                </el-form>
+                </div>
+                <el-button style="margin-top: 20px; margin-bottom: 200px;" type="success"
+                    @click="setUserConfig">保存</el-button>
             </div>
-            <el-button style="margin-top: 20px; margin-bottom: 200px;" type="success"
-                @click="setUserConfig">保存</el-button>
-        </div>
+        </el-form>
     </div>
     <div v-else-if="userConfig === null" v-loading="true">
         Loading...

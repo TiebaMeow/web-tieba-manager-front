@@ -10,7 +10,9 @@ interface HomeInfo {
         is_vip: boolean
         portrait: string
         user_name: string
-        nick_name: string
+        nick_name: string,
+        status: 'MISSING_COOKIE' | "SUCCESS" | "FAILED"
+        failed_reason?: string
     } | null
 }
 
