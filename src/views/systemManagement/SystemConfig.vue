@@ -90,6 +90,34 @@ async function setSystemConfig() {
     }
 }
 
+const databaseTestStatus = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
+const databaseErrorMessage = ref('')
+
+async function testDatabaseConnection() {
+    if (!systemConfig.value) {
+        message.notify('系统配置未加载，无法测试', message.error)
+        return
+    }
+    try {
+        databaseTestStatus.value = 'testing'
+        databaseErrorMessage.value = ''
+        const response = await TokenRequest.post<BaseResponse<boolean>>({
+            url: '/api/system/test_db_connection',
+            data: systemConfig.value.database
+        })
+        if (response.data.code === 200) {
+            databaseTestStatus.value = 'success'
+        } else {
+            databaseTestStatus.value = 'error'
+            databaseErrorMessage.value = response.data.message || `连接失败 ${response.data.code}`
+        }
+    } catch (error) {
+        databaseTestStatus.value = 'error'
+        databaseErrorMessage.value = `测试数据库连接失败 ${error}`
+        return
+    }
+}
+
 </script>
 
 <template>
@@ -158,6 +186,16 @@ async function setSystemConfig() {
                         </el-form-item>
                     </template>
                 </el-form>
+                <div v-if="databaseTestStatus !== 'idle'">
+                    <el-alert v-if="databaseTestStatus === 'testing'" title="正在测试数据库连接..." type="info"
+                        show-icon></el-alert>
+                    <el-alert v-else-if="databaseTestStatus === 'success'" title="数据库连接成功" type="success"
+                        show-icon></el-alert>
+                    <el-alert v-else-if="databaseTestStatus === 'error'" :title="databaseErrorMessage" type="error"
+                        show-icon>
+                    </el-alert>
+                </div>
+                <el-button style="margin-top: 10px;" type="primary" @click="testDatabaseConnection">测试数据库连接</el-button>
             </div>
             <div style="position: relative;">
                 <h3>服务器设置</h3>
