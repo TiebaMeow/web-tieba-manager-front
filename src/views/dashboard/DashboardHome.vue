@@ -46,7 +46,7 @@ function changeUserState() {
         </div>
         <h2>账号信息</h2>
 
-        <div style="display: flex; margin-bottom: 40px;" v-if="homeInfo.account">
+        <div style="display: flex; margin-bottom: 40px;" v-if="homeInfo.account?.status === 'SUCCESS'">
             <div style="width: 140px;">
                 <custom-statistic title="使用账号" :value="homeInfo.account.nick_name" style="margin-bottom: 20px;" />
                 <custom-statistic title="贴吧会员" :value="homeInfo.account.is_vip ? '是' : '否'" />
@@ -56,6 +56,17 @@ function changeUserState() {
                     <img style="border-radius: 50%;" width="90px"
                         :src="TokenRequest.host + '/resources/portrait/' + homeInfo.account.portrait" alt="">
                 </a>
+            </div>
+        </div>
+        <div style="display: flex; margin-bottom: 40px;" v-else-if="homeInfo.account?.status === 'MISSING_COOKIE'">
+            <div>
+                <custom-statistic title="登录状态" value="未设置 BDUSS 或 STOKEN" style="margin-bottom: 20px;" />
+            </div>
+        </div>
+        <div style="display: flex; margin-bottom: 40px;" v-else-if="homeInfo.account?.status === 'FAILED'">
+            <div>
+                <custom-statistic title="登录状态" value="登陆失败" style="margin-bottom: 20px;" />
+                <custom-statistic title="失败原因" :value="homeInfo.account.failed_reason || '未知'" />
             </div>
         </div>
         <div v-else>
