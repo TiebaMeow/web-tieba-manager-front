@@ -83,7 +83,7 @@ async function getRuleSetCopy() {
     if (newRuleSet()) {
         return
     }
-    if (!ruleSets.value || !ruleSets.value.length || !ruleSets.value?.[ruleSetSeq.value - 1]) {
+    if (!ruleSets.value || !ruleSets.value[ruleSetSeq.value - 1]) {
         router.push('/rule-sets')
         return
     }
