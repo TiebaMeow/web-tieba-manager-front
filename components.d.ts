@@ -14,6 +14,7 @@ declare module 'vue' {
     CustomCard: typeof import('./src/components/CustomCard.vue')['default']
     CustomStatistic: typeof import('./src/components/CustomStatistic.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
+    ElButtion: typeof import('element-plus/es')['ElButtion']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
