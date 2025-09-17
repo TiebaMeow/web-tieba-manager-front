@@ -93,7 +93,7 @@ const TokenRequest = new class TokenRequest extends Requests {
         }
     }
 
-}({ host: getData<string>('server_host') || 'https://api.example.com' })
+}({ host: getData<string>('server_host') || location.origin })
 
 
 export default TokenRequest
