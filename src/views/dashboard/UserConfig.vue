@@ -123,6 +123,8 @@ const setUserConfig = async () => {
             } catch (error) {
                 message.notify(`保存失败：${error}`, message.error)
             }
+        } else {
+            message.notify('请检查表单是否填写正确', message.error)
         }
     })
 }

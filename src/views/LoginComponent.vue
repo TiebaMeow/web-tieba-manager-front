@@ -98,6 +98,8 @@ async function register() {
 
                 }
             }
+        } else {
+            message.notify('请检查表单是否填写正确', message.error)
         }
     })
 }
@@ -132,6 +134,8 @@ async function login() {
 
                 }
             }
+        } else {
+            message.notify('请检查表单是否填写正确', message.error)
         }
     })
 }
