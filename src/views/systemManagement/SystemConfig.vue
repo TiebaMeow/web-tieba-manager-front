@@ -41,7 +41,7 @@ interface SystemConfig {
         encryption_salt: string
     },
     database: {
-        type: 'sqlite' | 'postgres'
+        type: 'sqlite' | 'postgresql'
         path: string
         host: string
         port: number
@@ -123,7 +123,7 @@ async function setSystemConfig() {
                     <el-form-item label="数据库类型">
                         <el-select v-model="systemConfig.database.type" placeholder="请选择" @change="edited = true">
                             <el-option label="SQLite" value="sqlite"></el-option>
-                            <el-option label="PostgreSQL" value="postgres"></el-option>
+                            <el-option label="PostgreSQL" value="postgresql"></el-option>
                         </el-select>
                     </el-form-item>
                     <template v-if="systemConfig.database.type === 'sqlite'">
@@ -138,7 +138,7 @@ async function setSystemConfig() {
                             </div>
                         </el-form-item>
                     </template>
-                    <template v-else-if="systemConfig.database.type === 'postgres'">
+                    <template v-else-if="systemConfig.database.type === 'postgresql'">
                         <el-form-item label="主机">
                             <el-input v-model="systemConfig.database.host" @change="edited = true"></el-input>
                         </el-form-item>
