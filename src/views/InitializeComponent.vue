@@ -86,7 +86,7 @@ const userForm = ref({
 })
 
 const systemForm = ref({
-    host: ['localhost', '127.0.0.1'].includes(location.hostname) ? '127.0.0.1' : '0.0.0.0',
+    host: 'localhost',
     port: location.port ? parseInt(location.port) : 36799,
     key: '',
     token_expire_days: 7,
@@ -122,6 +122,7 @@ const userRules = reactive<FormRules>({
 })
 
 const systemRules = reactive<FormRules>({
+    host: FORM_RULES.hostname,
     port: FORM_RULES.port,
     key: FORM_RULES.key,
     confirmKey: [
@@ -230,14 +231,8 @@ async function submit() {
                 </el-form>
                 <el-form v-else :model="systemForm" :rules="systemRules" ref="systemFormRef" label-position="right"
                     label-width="auto">
-                    <el-form-item label="主机">
-                        <el-radio-group v-model="systemForm.host">
-                            <el-radio value="0.0.0.0">0.0.0.0</el-radio>
-                            <br />
-                            <el-radio value="127.0.0.1">127.0.0.1</el-radio>
-                        </el-radio-group>
-                        <el-alert v-if="systemForm.host == '127.0.0.1'" style="margin-top: 5px;" type="warning"
-                            title="选择此项将导致外部电脑无法访问服务" show-icon :closable="false" />
+                    <el-form-item label="主机" prop="host">
+                        <el-input v-model="systemForm.host" placeholder="请填写主机" clearable />
                     </el-form-item>
                     <el-form-item label="端口" prop="port">
                         <number-input v-model="systemForm.port" placeholder="36799" clearable />
