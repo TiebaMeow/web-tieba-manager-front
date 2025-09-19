@@ -135,6 +135,13 @@ body.el-popup-parent--hidden {
     display: flex;
     justify-content: center;
 }
+
+.center-all {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
 </style>
 <style scoped>
 .header {
