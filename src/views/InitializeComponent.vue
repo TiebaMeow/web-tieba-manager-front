@@ -34,8 +34,10 @@ const Jump = new class {
         const interval = setInterval(() => {
             this.count.value -= 1
             if (this.count.value <= 0) {
+                this.count.value = 1 // 优化体验，防止变成0后页面空白
                 clearInterval(interval)
                 router.push('/login')
+                return
             }
         }, 1000)
     }
