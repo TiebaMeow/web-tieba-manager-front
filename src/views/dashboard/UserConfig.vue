@@ -167,7 +167,7 @@ const Qrcode = new class Qrcode {
             })
             if (response.data.code === 200) {
                 this.data.value = {
-                    qrcode: response.data.data.imgurl,
+                    qrcode: TokenRequest.host + '/api/tieba/qrcode_image?sign=' + response.data.data.sign.split('').reverse().join(''),
                     sign: response.data.data.sign,
                     status: 'WAITING'
                 }
@@ -247,8 +247,7 @@ const ifShowQrcode = Qrcode.show
         style="width: min-content;">
         <div style="margin: 10px; border: 1px solid gray; width: 250px; height: 250px" class="center-all">
             <template v-if="qrcode">
-                <img v-if="qrcode.status === 'WAITING'" :src="'https://' + qrcode.qrcode"
-                    style="width: 100%; height: auto;" />
+                <img v-if="qrcode.status === 'WAITING'" :src="qrcode.qrcode" style="width: 100%; height: auto;" />
                 <div v-else-if="qrcode.status === 'SCANNED'">
                     <el-icon :size="50" color="#67C23A"
                         style="margin-bottom: 10px;"><i-ep-success-filled /></el-icon><br />
