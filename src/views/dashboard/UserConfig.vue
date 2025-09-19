@@ -205,7 +205,7 @@ const Qrcode = new class Qrcode {
                         sign
                     }
                 })
-                if (response.data.code === 200) {
+                if (response.data.code === 200 || response.data.code === 500) {
                     this.data.value.status = response.data.data.status
                     if (this.data.value.status === 'SUCCESS' && response.data.data.account) {
                         // 登录成功
