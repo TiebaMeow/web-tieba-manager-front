@@ -95,6 +95,8 @@ const systemForm = ref({
     confirmKey: ''
 })
 
+const secureKey = ref('')
+
 const validateUserConfirmPassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
     if (userForm.value.password && !value) {
         return callback(new Error('请再次输入密码'))
@@ -120,7 +122,8 @@ const userRules = reactive<FormRules>({
     password: FORM_RULES.password,
     confirmPassword: [
         { validator: validateUserConfirmPassword, trigger: 'blur' }
-    ]
+    ],
+    secureKey: { required: true, message: '请输入初始化密钥', trigger: 'blur' }
 })
 
 const systemRules = reactive<FormRules>({
@@ -129,7 +132,8 @@ const systemRules = reactive<FormRules>({
     key: FORM_RULES.key,
     confirmKey: [
         { validator: validateSystemConfirmPassword, trigger: 'blur' }
-    ]
+    ],
+    secureKey: userRules.secureKey
 })
 
 async function nextStep() {
@@ -165,7 +169,8 @@ async function submit() {
             url: '/api/initialize/initialize',
             data: {
                 user: userForm.value,
-                system: systemForm.value
+                system: systemForm.value,
+                secure_key: secureKey.value
             }
         })
         currForm.value = null
@@ -230,6 +235,9 @@ async function submit() {
                     <el-form-item label=" " prop="confirmPassword">
                         <el-input v-model="userForm.confirmPassword" placeholder="二次确认密码" show-password clearable />
                     </el-form-item>
+                    <el-form-item label="初始化密钥" prop="secureKey">
+                        <el-input v-model="secureKey" placeholder="请填写初始化密钥" show-password clearable />
+                    </el-form-item>
                 </el-form>
                 <el-form v-else :model="systemForm" :rules="systemRules" ref="systemFormRef" label-position="right"
                     label-width="auto">
@@ -253,6 +261,9 @@ async function submit() {
                             <el-radio-button :value="30">30天</el-radio-button>
                             <el-radio-button :value="365">365天</el-radio-button>
                         </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="初始化密钥" prop="secureKey">
+                        <el-input v-model="secureKey" placeholder="请填写初始化密钥" show-password clearable />
                     </el-form-item>
                 </el-form>
                 <div style="margin-top: 20px;">
