@@ -78,88 +78,72 @@ fetchInitializeInfo()
 const isSuccess = ref(false)
 const currForm = ref<'user' | 'system' | false | null>(null)
 
-const userFormRef = ref<FormInstance>()
-const systemFormRef = ref<FormInstance>()
+const formRef = ref<FormInstance>()
 
-const userForm = ref({
-    username: '',
-    password: '',
-    confirmPassword: ''
+const unifiedForm = ref({
+    user: {
+        username: '',
+        password: '',
+        confirmPassword: ''
+    },
+    system: {
+        host: 'localhost',
+        port: location.port ? parseInt(location.port) : 36799,
+        key: '',
+        token_expire_days: 7,
+        confirmKey: ''
+    },
+    secureKey: ''
 })
-
-const systemForm = ref({
-    host: 'localhost',
-    port: location.port ? parseInt(location.port) : 36799,
-    key: '',
-    token_expire_days: 7,
-    confirmKey: ''
-})
-
-const secureKey = ref('')
 
 const validateUserConfirmPassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-    if (userForm.value.password && !value) {
+    if (unifiedForm.value.user.password && !value) {
         return callback(new Error('请再次输入密码'))
     }
-    if (value !== userForm.value.password) {
+    if (value !== unifiedForm.value.user.password) {
         return callback(new Error('两次输入的密码不一致'))
     }
     callback()
 }
 
 const validateSystemConfirmPassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
-    if (systemForm.value.key && !value) {
+    if (unifiedForm.value.system.key && !value) {
         return callback(new Error('请再次输入密钥'))
     }
-    if (value !== systemForm.value.key) {
+    if (value !== unifiedForm.value.system.key) {
         return callback(new Error('两次输入的密钥不一致'))
     }
     callback()
 }
 
-const userRules = reactive<FormRules>({
-    username: FORM_RULES.username,
-    password: FORM_RULES.password,
-    confirmPassword: [
+const rules = reactive<FormRules>({
+    'user.username': FORM_RULES.username,
+    'user.password': FORM_RULES.password,
+    'user.confirmPassword': [
         { validator: validateUserConfirmPassword, trigger: 'blur' }
+    ],
+    'system.host': FORM_RULES.hostname,
+    'system.port': FORM_RULES.port,
+    'system.key': FORM_RULES.key,
+    'system.confirmKey': [
+        { validator: validateSystemConfirmPassword, trigger: 'blur' }
     ],
     secureKey: { required: true, message: '请输入初始化密钥', trigger: 'blur' }
 })
 
-const systemRules = reactive<FormRules>({
-    host: FORM_RULES.hostname,
-    port: FORM_RULES.port,
-    key: FORM_RULES.key,
-    confirmKey: [
-        { validator: validateSystemConfirmPassword, trigger: 'blur' }
-    ],
-    secureKey: userRules.secureKey
-})
-
 async function nextStep() {
-    if (currForm.value === 'user') {
-        if (!userFormRef.value) return
-        await userFormRef.value.validate((valid) => {
-            if (valid) {
-                if (initializeInfo.value?.need_system) {
-                    currForm.value = 'system'
-                } else {
-                    submit()
-                }
+    if (!formRef.value) return
+    await formRef.value.validate((valid) => {
+        if (valid) {
+            if (currForm.value === 'user' && initializeInfo.value?.need_system) {
+                currForm.value = 'system'
             } else {
-                message.notify('请检查表单是否填写正确', message.error)
-            }
-        })
-    } else {
-        if (!systemFormRef.value) return
-        await systemFormRef.value.validate((valid) => {
-            if (valid) {
                 submit()
-            } else {
-                message.notify('请检查表单是否填写正确', message.error)
             }
-        })
-    }
+        } else {
+            message.notify('请检查表单是否填写正确', message.error)
+        }
+    })
 }
 
 async function submit() {
@@ -168,9 +152,9 @@ async function submit() {
         await request.post({
             url: '/api/initialize/initialize',
             data: {
-                user: userForm.value,
-                system: systemForm.value,
-                secure_key: secureKey.value
+                user: unifiedForm.value.user,
+                system: unifiedForm.value.system,
+                secure_key: unifiedForm.value.secureKey
             }
         })
         currForm.value = null
@@ -224,38 +208,38 @@ async function submit() {
             </div>
             <template v-else>
 
-                <el-form v-if="currForm == 'user'" :model="userForm" :rules="userRules" ref="userFormRef"
+                <el-form v-if="currForm == 'user'" :model="unifiedForm" :rules="rules" ref="formRef"
                     label-position="right" label-width="auto">
-                    <el-form-item label="用户名" prop="username">
-                        <el-input v-model="userForm.username" placeholder="请填写用户名" clearable />
+                    <el-form-item label="用户名" prop="user.username">
+                        <el-input v-model="unifiedForm.user.username" placeholder="请填写用户名" clearable />
                     </el-form-item>
-                    <el-form-item label="密码" prop="password">
-                        <el-input v-model="userForm.password" placeholder="请填写密码" show-password clearable />
+                    <el-form-item label="密码" prop="user.password">
+                        <el-input v-model="unifiedForm.user.password" placeholder="请填写密码" show-password clearable />
                     </el-form-item>
-                    <el-form-item label=" " prop="confirmPassword">
-                        <el-input v-model="userForm.confirmPassword" placeholder="二次确认密码" show-password clearable />
+                    <el-form-item label=" " prop="user.confirmPassword">
+                        <el-input v-model="unifiedForm.user.confirmPassword" placeholder="二次确认密码" show-password clearable />
                     </el-form-item>
                     <el-form-item label="初始化密钥" prop="secureKey">
-                        <el-input v-model="secureKey" placeholder="请填写初始化密钥" show-password clearable />
+                        <el-input v-model="unifiedForm.secureKey" placeholder="请填写初始化密钥" show-password clearable />
                     </el-form-item>
                 </el-form>
-                <el-form v-else :model="systemForm" :rules="systemRules" ref="systemFormRef" label-position="right"
+                <el-form v-else :model="unifiedForm" :rules="rules" ref="formRef" label-position="right"
                     label-width="auto">
-                    <el-form-item label="主机" prop="host">
-                        <el-input v-model="systemForm.host" placeholder="请填写主机" clearable />
+                    <el-form-item label="主机" prop="system.host">
+                        <el-input v-model="unifiedForm.system.host" placeholder="请填写主机" clearable />
                     </el-form-item>
-                    <el-form-item label="端口" prop="port">
-                        <number-input v-model="systemForm.port" placeholder="36799" clearable />
+                    <el-form-item label="端口" prop="system.port">
+                        <number-input v-model="unifiedForm.system.port" placeholder="36799" clearable />
                     </el-form-item>
-                    <el-form-item label="密钥" prop="key">
-                        <el-input v-model="systemForm.key" placeholder="请填写密钥" show-password clearable />
+                    <el-form-item label="密钥" prop="system.key">
+                        <el-input v-model="unifiedForm.system.key" placeholder="请填写密钥" show-password clearable />
                     </el-form-item>
-                    <el-form-item label=" " prop="confirmKey">
-                        <el-input v-model="systemForm.confirmKey" placeholder="二次确认密钥" show-password clearable />
+                    <el-form-item label=" " prop="system.confirmKey">
+                        <el-input v-model="unifiedForm.system.confirmKey" placeholder="二次确认密钥" show-password clearable />
                         <el-alert title="系统密钥将用于高级配置，登录时选填" :closable="false" show-icon style="margin-top: 13px;" />
                     </el-form-item>
                     <el-form-item label="登录有效期">
-                        <el-radio-group v-model="systemForm.token_expire_days">
+                        <el-radio-group v-model="unifiedForm.system.token_expire_days">
                             <el-radio-button :value="1">1天</el-radio-button>
                             <el-radio-button :value="7">7天</el-radio-button>
                             <el-radio-button :value="30">30天</el-radio-button>
@@ -263,7 +247,7 @@ async function submit() {
                         </el-radio-group>
                     </el-form-item>
                     <el-form-item label="初始化密钥" prop="secureKey">
-                        <el-input v-model="secureKey" placeholder="请填写初始化密钥" show-password clearable />
+                        <el-input v-model="unifiedForm.secureKey" placeholder="请填写初始化密钥" show-password clearable />
                     </el-form-item>
                 </el-form>
                 <div style="margin-top: 20px;">
