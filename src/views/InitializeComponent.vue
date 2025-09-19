@@ -14,6 +14,16 @@ const request = new Requests({
 })
 const initializeInfo = ref<{ need_user: boolean, need_system: boolean } | null>(null)
 const loading = ref(false)
+const manualHost = ref(location.origin)
+const manual = ref(false)
+
+async function setManualHost() {
+    request.host = manualHost.value
+    const resp = await fetchInitializeInfo()
+    if (resp) {
+        message.notify('初始化信息获取成功', message.success)
+    }
+}
 
 const Jump = new class {
     count: Ref<number>
@@ -48,12 +58,15 @@ async function fetchInitializeInfo() {
         } else {
             Jump.jump()
         }
+        manual.value = false
+        return true
     } catch (err) {
         if (err instanceof AxiosError && err.response) {
             message.notify(`请求失败 ${err.response.status} ${err.message}`, message.error)
         } else {
             message.notify(`请求失败，发生错误 ${err}`, message.error)
         }
+        manual.value = true
     } finally {
         loading.value = false
     }
@@ -183,7 +196,13 @@ async function submit() {
             <template #header>
                 <span>初始化{{ currForm == 'user' ? '用户' : '系统' }}配置</span>
             </template>
-            <div v-if="!currForm" style="height: 200px; display: flex; justify-content: center; align-items: center">
+            <div v-if="manual">
+                <el-alert title="无法自动获取服务地址，请手动填写" type="warning" show-icon :closable="false" />
+                <el-input v-model="manualHost" placeholder="服务地址" clearable style="margin-top: 10px;" />
+                <el-button type="primary" style="margin-top: 10px;" @click="setManualHost">确认</el-button>
+            </div>
+            <div v-else-if="!currForm"
+                style="height: 200px; display: flex; justify-content: center; align-items: center">
                 <div v-if="isSuccess" style="text-align: center;">
                     <h2>初始化成功</h2>
                     {{ Jump.count }}秒后将转跳至登录页面
