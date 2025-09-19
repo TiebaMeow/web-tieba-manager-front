@@ -190,7 +190,7 @@ const Qrcode = new class Qrcode {
             message.notify('请先获取二维码', message.error)
             return
         }
-        while (this.show.value && this.data.value.sign == sign) {
+        while (this.show.value && this.data.value.sign === sign) {
             try {
                 const response = await TokenRequest.post<BaseResponse<{
                     status: QrcodeStatus,
