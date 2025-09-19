@@ -23,8 +23,8 @@ const loginForm = ref<{
 }>({
     host: query.host as string || getData<string>('server_host') || location.origin,
     username: query.username as string || '',
-    password: query.password as string || '',
-    key: query.key as string || '',
+    password: '',
+    key: '',
     code: query.code as string || ''
 })
 

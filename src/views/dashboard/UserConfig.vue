@@ -2,7 +2,7 @@
 import message from '@/lib/message'
 import TokenRequest from '@/lib/token'
 import { fetchHomeInfo } from '@/lib/data/common'
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, type Ref } from 'vue'
 import { currTokenData, SwitchTokenEvent } from '@/lib/data/tokenManager'
 import { onBeforeRouteLeave } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -141,9 +141,138 @@ onBeforeRouteLeave((to, from, next) => {
     }
 })
 
+type QrcodeStatus = 'WAITING' | 'EXPIRED' | 'SCANNED' | 'FAILED' | 'SUCCESS'
+interface QrcodeData {
+    qrcode: string
+    sign: string
+    status: QrcodeStatus
+}
+const Qrcode = new class Qrcode {
+    show: Ref<boolean> = ref(false)
+    data: Ref<QrcodeData | null> = ref(null)
+
+    clear() {
+        this.data.value = null
+    }
+
+    async getQrcode() {
+        try {
+            const response = await TokenRequest.get<BaseResponse<{
+                imgurl: string
+                sign: string
+                errno: number
+                prompt: string
+            }>>({
+                url: '/api/tieba/get_qrcode'
+            })
+            if (response.data.code === 200) {
+                this.data.value = {
+                    qrcode: response.data.data.imgurl,
+                    sign: response.data.data.sign,
+                    status: 'WAITING'
+                }
+                this.getStatus(response.data.data.sign)
+            } else {
+                this.clear()
+                if (response.data.code === 500) {
+                    message.notify(`${response.data.message} ${response.data.data.prompt}`, message.error)
+                } else {
+                    message.notify(`获取二维码失败：${response.data.message}`, message.error)
+                }
+            }
+        } catch (error) {
+            message.notify(`获取二维码失败：${error}`, message.error)
+        }
+    }
+
+    async getStatus(sign: string) {
+        if (!this.data.value) {
+            message.notify('请先获取二维码', message.error)
+            return
+        }
+        while (this.show.value && this.data.value.sign === sign) {
+            try {
+                const response = await TokenRequest.post<BaseResponse<{
+                    status: QrcodeStatus,
+                    account: {
+                        bduss: string,
+                        stoken: string
+                        user_name: string
+                    } | null
+                }>>({
+                    url: '/api/tieba/qrcode_status',
+                    data: {
+                        sign
+                    }
+                })
+                if (response.data.code === 200 || response.data.code === 500) {
+                    this.data.value.status = response.data.data.status
+                    if (this.data.value.status === 'SUCCESS' && response.data.data.account) {
+                        // 登录成功
+                        if (userConfig.value) {
+                            userConfig.value.forum.bduss = response.data.data.account.bduss
+                            userConfig.value.forum.stoken = response.data.data.account.stoken
+                            edited.value = true
+                        }
+                        message.notify(`登录成功，${response.data.data.account.user_name}`, message.success)
+                        setTimeout(() => {
+                            this.show.value = false
+                        }, 1000)
+                        return
+                    } else if (this.data.value.status === 'EXPIRED') {
+                        // message.notify('二维码已过期，请重新获取', message.error)
+                        return
+                    }
+                } else {
+                    // message.notify(response.data.message || '获取扫码状态失败', message.error)
+                    return
+                }
+                await new Promise(resolve => setTimeout(resolve, 3000))
+            } catch {
+                // message.notify(`获取扫码状态失败：${error}`, message.error)
+                this.data.value.status = 'FAILED'
+                return
+            }
+        }
+    }
+}
+const qrcode = Qrcode.data
+const ifShowQrcode = Qrcode.show
+
+
 </script>
 
 <template>
+    <el-dialog v-model="ifShowQrcode" @open="Qrcode.getQrcode()" @closed="Qrcode.clear()" title="扫码登录"
+        style="width: min-content;">
+        <div style="margin: 10px; border: 1px solid gray; width: 250px; height: 250px" class="center-all">
+            <template v-if="qrcode">
+                <img v-if="qrcode.status === 'WAITING'" :src="'https://' + qrcode.qrcode"
+                    style="width: 100%; height: auto;" />
+                <div v-else-if="qrcode.status === 'SCANNED'">
+                    <el-icon :size="50" color="#67C23A"
+                        style="margin-bottom: 10px;"><i-ep-success-filled /></el-icon><br />
+                    扫描成功<br />请在手机上确认登录
+                </div>
+                <div v-else-if="qrcode.status === 'EXPIRED'">
+                    <el-icon :size="50" color="#E6A23C"
+                        style="margin-bottom: 10px;"><i-ep-warning-filled /></el-icon><br />
+                    二维码已过期<br />
+                    <el-link @click="Qrcode.getQrcode()" type="danger" underline="never">点击刷新</el-link>
+                </div>
+                <div v-else-if="qrcode.status === 'FAILED'">
+                    <el-icon :size="50" color="#F56C6C"
+                        style="margin-bottom: 10px;"><i-ep-circle-close-filled /></el-icon>
+                    获取二维码失败
+                    <el-link @click="Qrcode.getQrcode()" type="danger" underline="never">点击刷新</el-link>
+                </div>
+                <div v-else-if="qrcode.status === 'SUCCESS'">
+                    登录成功，正在关闭窗口...
+                </div>
+            </template>
+            <div v-else style="text-align: center;">Loading...</div>
+        </div>
+    </el-dialog>
     <div style="max-width: 1000px; flex-grow: 1;" v-if="userConfig">
         <el-form ref="formRef" :model="userConfig" :rules="rules" label-width="auto">
             <div style="max-width: 600px;">
@@ -177,6 +306,9 @@ onBeforeRouteLeave((to, from, next) => {
                     <el-form-item label="STOKEN" prop="forum.stoken">
                         <el-input v-model="userConfig.forum.stoken" show-password @change="edited = true"></el-input>
                     </el-form-item>
+                    <el-button type="primary" @click="ifShowQrcode = true">
+                        扫码登录
+                    </el-button>
                 </div>
                 <div>
                     <h3>
