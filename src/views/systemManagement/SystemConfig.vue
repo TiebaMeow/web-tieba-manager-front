@@ -93,11 +93,16 @@ interface SystemConfig {
 }
 
 function confirmEditServerConfig() {
-    message.confirm('服务器设置更新后需要重启程序才能生效', '重要提示', () => {
-        confirmedEditServerConfig.value = true
-    }, () => {
-        confirmedEditServerConfig.value = false
-    })
+    message.confirm(
+        '服务器设置变更后，需重启程序才能生效',
+        '重要提示',
+        () => {
+            confirmedEditServerConfig.value = true
+        },
+        () => {
+            confirmedEditServerConfig.value = false
+        }
+    )
 }
 
 const systemConfig = ref<RefResponse<SystemConfig>>(undefined)
