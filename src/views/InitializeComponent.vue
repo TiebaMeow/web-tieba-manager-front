@@ -36,8 +36,40 @@ const Jump = new class {
             if (this.count.value <= 0) {
                 this.count.value = 1 // 优化体验，防止变成0后页面空白
                 clearInterval(interval)
-                router.push('/login')
-                return
+                const params: {
+                    host?: string
+                    username?: string
+                } = {}
+
+                // 如果手动填写的host和当前地址相同，取消手动填写
+                if (manualHost.value === location.origin) {
+                    manual.value = false
+                }
+
+                // 如果手动填写了host
+                const { protocol, hostname } = (manual.value ? new URL(manualHost.value) : location)
+                // 如果手动填写了host，且指定的host已经初始化
+                // TODO 优化manual, currForm, isSuccess的状态管理
+                const port = manual.value && !isSuccess.value ? (new URL(manualHost.value)).port : unifiedForm.value.system.port.toString()
+                // 混合一下
+                const newHost = `${protocol}//${hostname}${port ? `:${port}` : ''}`
+                // 如果和当前地址不一样，传递host参数
+                if (newHost !== location.origin) {
+                    params.host = newHost
+                }
+                // 如果设置了用户名，传递用户名参数
+                if (unifiedForm.value.user.username) {
+                    params.username = unifiedForm.value.user.username
+                }
+
+                if (!manual.value && location.port !== unifiedForm.value.system.port.toString()) {
+                    // 当被初始化的程序提供webui，且端口不同，强制跳转
+                    // 假定当前的hostname和protocol在初始化后能够访问webui资源
+                    delete params.host // 删除host，防止重复传递
+                    location.href = `${newHost}/#/login${Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : ''}`
+                } else {
+                    router.push({ name: 'login', query: params })
+                }
             }
         }, 1000)
     }
@@ -68,6 +100,7 @@ async function fetchInitializeInfo() {
         } else {
             message.notify(`请求失败，发生错误 ${err}`, message.error)
         }
+        currForm.value = false
         manual.value = true
     } finally {
         loading.value = false
@@ -76,6 +109,7 @@ async function fetchInitializeInfo() {
 fetchInitializeInfo()
 
 const isSuccess = ref(false)
+// false -> 请求失败  null -> 系统已初始化
 const currForm = ref<'user' | 'system' | false | null>(null)
 
 const formRef = ref<FormInstance>()
