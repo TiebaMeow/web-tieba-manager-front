@@ -1,6 +1,6 @@
 import type { FormRules } from 'element-plus';
 
-const FORM_RULES: FormRules = {
+const FORM_RULES: Readonly<FormRules> = {
     host: [
         { required: true, message: '请输入服务地址', trigger: 'blur' },
         { type: 'url', message: '请输入有效的URL地址', trigger: 'blur' }
@@ -14,7 +14,6 @@ const FORM_RULES: FormRules = {
         { min: 1, max: 32, message: '长度应为 1 到 32 个字符', trigger: 'blur' },
         { pattern: /^[a-zA-Z0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+$/, message: '只能包含英文字符、数字和常见符号', trigger: 'blur' }
     ],
-
     port: [
         { required: true, message: '请输入端口', trigger: 'blur' },
         { type: 'number', message: '端口必须是数字', trigger: 'blur' },
@@ -29,8 +28,12 @@ const FORM_RULES: FormRules = {
             trigger: 'blur'
         }
     ],
-
+    loginKey: [
+        { min: 1, max: 32, message: '长度应为 1 到 32 个字符', trigger: 'blur' },
+        { pattern: /^[a-zA-Z0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+$/, message: '只能包含英文字符、数字和常见符号', trigger: 'blur' }
+    ],
     key: [
+        { required: true, message: '请输入系统密钥', trigger: 'blur' },
         { min: 1, max: 32, message: '长度应为 1 到 32 个字符', trigger: 'blur' },
         { pattern: /^[a-zA-Z0-9\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7E]+$/, message: '只能包含英文字符、数字和常见符号', trigger: 'blur' }
     ],
