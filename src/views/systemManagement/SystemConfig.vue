@@ -146,10 +146,32 @@ const databaseTestStatus = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
 const databaseErrorMessage = ref('')
 
 async function testDatabaseConnection() {
-    if (!systemConfig.value) {
+    if (!systemConfig.value || !formRef.value) {
         message.notify('系统配置未加载，无法测试', message.error)
         return
     }
+
+    const dbConfig = systemConfig.value.database
+    const fieldsToValidate: string[] = []
+    if (dbConfig.type === 'sqlite') {
+        fieldsToValidate.push('database.path')
+    } else if (dbConfig.type === 'postgresql') {
+        fieldsToValidate.push(
+            'database.host',
+            'database.port',
+            'database.username',
+            'database.password',
+            'database.db'
+        )
+    }
+
+    try {
+        await formRef.value.validateField(fieldsToValidate)
+    } catch {
+        message.notify('数据库配置有误，无法进行测试', message.error)
+        return
+    }
+
     try {
         databaseTestStatus.value = 'testing'
         databaseErrorMessage.value = ''
