@@ -49,7 +49,14 @@ const Jump = new class {
                 // 如果手动填写了host
                 const { protocol, hostname } = new URL(request.host)
 
-                const port = isManual && status.value !== 'success' ? (new URL(manualHost.value)).port : unifiedForm.value.system.port.toString()
+                // 如果是手动填写host，且系统已经初始化
+                let port: string;
+                if (isManual && status.value === 'initialized') {
+                    port = (new URL(manualHost.value)).port;
+                } else {
+                    port = unifiedForm.value.system.port.toString();
+                }
+
                 // 混合一下
                 const newHost = `${protocol}//${hostname}${port ? `:${port}` : ''}`
                 // 如果和当前地址不一样，传递host参数
@@ -61,7 +68,8 @@ const Jump = new class {
                     params.username = unifiedForm.value.user.username
                 }
 
-                if (!isManual && location.port !== unifiedForm.value.system.port.toString()) {
+                const locationPort = location.port ? location.port : (location.protocol === 'http:' ? '80' : '443')
+                if (!isManual && locationPort !== unifiedForm.value.system.port.toString()) {
                     // 当被初始化的程序提供webui，且端口不同，强制跳转
                     // 假定当前的hostname和protocol在初始化后能够访问webui资源
                     delete params.host // 删除host，防止重复传递
