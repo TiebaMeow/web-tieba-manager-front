@@ -41,7 +41,7 @@ const formRules = reactive<FormRules>({
     ],
     'server.host': FORM_RULES.hostname,
     'server.port': FORM_RULES.port,
-    'server.key': [{ required: true, message: '请输入密钥', trigger: 'blur' }, ...(Array.isArray(FORM_RULES.key) ? FORM_RULES.key : [])],
+    'server.key': FORM_RULES.key,
     'server.token_expire_days': [
         { required: true, message: '请输入登录有效期', trigger: 'blur' },
         { type: 'number', min: 0, message: '有效期必须为非负整数', trigger: 'blur' }
@@ -93,11 +93,16 @@ interface SystemConfig {
 }
 
 function confirmEditServerConfig() {
-    message.confirm('服务器设置更新后需要重启程序才能生效', '重要提示', () => {
-        confirmedEditServerConfig.value = true
-    }, () => {
-        confirmedEditServerConfig.value = false
-    })
+    message.confirm(
+        '服务器设置变更后，需重启程序才能生效',
+        '重要提示',
+        () => {
+            confirmedEditServerConfig.value = true
+        },
+        () => {
+            confirmedEditServerConfig.value = false
+        }
+    )
 }
 
 const systemConfig = ref<RefResponse<SystemConfig>>(undefined)
@@ -141,10 +146,32 @@ const databaseTestStatus = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
 const databaseErrorMessage = ref('')
 
 async function testDatabaseConnection() {
-    if (!systemConfig.value) {
+    if (!systemConfig.value || !formRef.value) {
         message.notify('系统配置未加载，无法测试', message.error)
         return
     }
+
+    const dbConfig = systemConfig.value.database
+    const fieldsToValidate: string[] = []
+    if (dbConfig.type === 'sqlite') {
+        fieldsToValidate.push('database.path')
+    } else if (dbConfig.type === 'postgresql') {
+        fieldsToValidate.push(
+            'database.host',
+            'database.port',
+            'database.username',
+            'database.password',
+            'database.db'
+        )
+    }
+
+    try {
+        await formRef.value.validateField(fieldsToValidate)
+    } catch {
+        message.notify('数据库配置有误，无法进行测试', message.error)
+        return
+    }
+
     try {
         databaseTestStatus.value = 'testing'
         databaseErrorMessage.value = ''
@@ -270,7 +297,7 @@ const dbnameHasUppercase = computed(() => {
                             <el-input-number v-model="systemConfig.server.port" :min="1" :max="65535"
                                 @change="edited = true" :controls="false"></el-input-number>
                         </el-form-item>
-                        <el-form-item label="密钥" prop="server.key">
+                        <el-form-item label="系统密钥" prop="server.key">
                             <el-input v-model="systemConfig.server.key" show-password
                                 @change="edited = true"></el-input>
                         </el-form-item>
@@ -281,7 +308,7 @@ const dbnameHasUppercase = computed(() => {
                             </el-input-number>
                         </el-form-item>
                     </div>
-                    <el-button style="position: absolute; top: 45%; left: 45%;" type="warning"
+                    <el-button style="position: absolute; top: calc(50% - 16px); left: calc(50% - 75px);" type="warning"
                         @click="confirmEditServerConfig" v-if="!confirmedEditServerConfig">
                         编辑服务器设置
                     </el-button>

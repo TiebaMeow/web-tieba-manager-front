@@ -47,7 +47,7 @@ const rules = reactive<FormRules>({
     confirmPassword: [
         { validator: validateConfirmPassword, trigger: 'blur' }
     ],
-    key: FORM_RULES.key,
+    key: FORM_RULES.loginKey,
     code: FORM_RULES.code
 })
 
