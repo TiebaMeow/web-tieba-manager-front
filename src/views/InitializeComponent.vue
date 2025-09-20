@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, type Ref } from 'vue';
+import { ref, reactive, type Ref, onMounted } from 'vue';
 import NumberInput from '@/components/NumberInput.vue';
 import message from '@/lib/message';
 import Requests from '@/lib/request';
@@ -12,10 +12,13 @@ const router = useRouter()
 const request = new Requests({
     host: location.origin
 })
+
+// loading: 正在加载, form: 显示表单, success: 初始化成功, fail: 获取初始化信息失败, initialized: 已初始化
+const status = ref<'loading' | 'form' | 'success' | 'fail' | 'initialized'>('loading')
 const initializeInfo = ref<{ need_user: boolean, need_system: boolean } | null>(null)
-const loading = ref(false)
 const manualHost = ref(location.origin)
-const manual = ref(false)
+
+const currForm = ref<'user' | 'system'>('user')
 
 async function setManualHost() {
     request.host = manualHost.value
@@ -36,8 +39,44 @@ const Jump = new class {
             if (this.count.value <= 0) {
                 this.count.value = 1 // 优化体验，防止变成0后页面空白
                 clearInterval(interval)
-                router.push('/login')
-                return
+                const params: {
+                    host?: string
+                    username?: string
+                } = {}
+
+                const isManual = new URL(request.host).origin !== location.origin
+
+                // 如果手动填写了host
+                const { protocol, hostname } = new URL(request.host)
+
+                // 如果是手动填写host，且系统已经初始化
+                let port: string;
+                if (isManual && status.value === 'initialized') {
+                    port = (new URL(manualHost.value)).port;
+                } else {
+                    port = unifiedForm.value.system.port.toString();
+                }
+
+                // 混合一下
+                const newHost = `${protocol}//${hostname}${port ? `:${port}` : ''}`
+                // 如果和当前地址不一样，传递host参数
+                if (newHost !== location.origin) {
+                    params.host = newHost
+                }
+                // 如果设置了用户名，传递用户名参数
+                if (unifiedForm.value.user.username) {
+                    params.username = unifiedForm.value.user.username
+                }
+
+                const locationPort = location.port ? location.port : (location.protocol === 'http:' ? '80' : '443')
+                if (!isManual && locationPort !== unifiedForm.value.system.port.toString()) {
+                    // 当被初始化的程序提供webui，且端口不同，强制跳转
+                    // 假定当前的hostname和protocol在初始化后能够访问webui资源
+                    delete params.host // 删除host，防止重复传递
+                    location.href = `${newHost}/#/login${Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : ''}`
+                } else {
+                    router.push({ name: 'login', query: params })
+                }
             }
         }, 1000)
     }
@@ -45,7 +84,7 @@ const Jump = new class {
 
 async function fetchInitializeInfo() {
     try {
-        loading.value = true
+        status.value = 'loading'
         const resp = await request.get<BaseResponse<{
             need_user: boolean,
             need_system: boolean
@@ -55,12 +94,14 @@ async function fetchInitializeInfo() {
         initializeInfo.value = resp.data.data
         if (initializeInfo.value.need_user) {
             currForm.value = 'user'
+            status.value = 'form'
         } else if (initializeInfo.value.need_system) {
             currForm.value = 'system'
+            status.value = 'form'
         } else {
+            status.value = 'initialized'
             Jump.jump()
         }
-        manual.value = false
         return true
     } catch (err) {
         if (err instanceof AxiosError && err.response) {
@@ -68,15 +109,10 @@ async function fetchInitializeInfo() {
         } else {
             message.notify(`请求失败，发生错误 ${err}`, message.error)
         }
-        manual.value = true
-    } finally {
-        loading.value = false
+        status.value = 'fail'
     }
 }
-fetchInitializeInfo()
-
-const isSuccess = ref(false)
-const currForm = ref<'user' | 'system' | false | null>(null)
+onMounted(fetchInitializeInfo)
 
 const formRef = ref<FormInstance>()
 
@@ -148,7 +184,7 @@ async function nextStep() {
 
 async function submit() {
     try {
-        loading.value = true
+        status.value = 'loading'
         await request.post({
             url: '/api/initialize/initialize',
             data: {
@@ -157,8 +193,7 @@ async function submit() {
                 secure_key: unifiedForm.value.secureKey
             }
         })
-        currForm.value = null
-        isSuccess.value = true
+        status.value = 'success'
         Jump.jump()
     } catch (err) {
         if (err instanceof AxiosError && err.response) {
@@ -176,8 +211,7 @@ async function submit() {
         } else {
             message.notify(`未知错误 ${err}`, message.error)
         }
-    } finally {
-        loading.value = false
+        status.value = 'form' // 提交失败返回表单
     }
 }
 </script>
@@ -186,27 +220,33 @@ async function submit() {
     <div class="center">
         <el-card class="login-card">
             <template #header>
-                <span>初始化{{ currForm == 'user' ? '用户' : '系统' }}配置</span>
+                <span v-if="status === 'form'">初始化{{ currForm == 'user' ? '用户' : '系统' }}配置</span>
+                <span v-else>初始化</span>
             </template>
-            <div v-if="manual">
+            <div v-if="status === 'fail'">
                 <el-alert title="无法自动获取服务地址，请手动填写" type="warning" show-icon :closable="false" />
                 <el-input v-model="manualHost" placeholder="服务地址" clearable style="margin-top: 10px;" />
                 <el-button type="primary" style="margin-top: 10px;" @click="setManualHost">确认</el-button>
             </div>
-            <div v-else-if="!currForm"
+            <div v-else-if="status === 'loading'"
                 style="height: 200px; display: flex; justify-content: center; align-items: center">
-                <div v-if="isSuccess" style="text-align: center;">
+                <h2 v-loading="true">正在加载...</h2>
+            </div>
+            <div v-else-if="status === 'success'"
+                style="height: 200px; display: flex; justify-content: center; align-items: center; text-align: center;">
+                <div>
                     <h2>初始化成功</h2>
                     {{ Jump.count }}秒后将转跳至登录页面
                 </div>
-                <h2 v-else-if="currForm === false">数据加载失败 </h2>
-                <h2 v-else-if="initializeInfo === null" v-loading="true">正在加载...</h2>
-                <div v-else style="text-align: center;">
+            </div>
+            <div v-else-if="status === 'initialized'"
+                style="height: 200px; display: flex; justify-content: center; align-items: center; text-align: center;">
+                <div>
                     <h2>系统已初始化</h2>
                     {{ Jump.count }}秒后将转跳至登录页面
                 </div>
             </div>
-            <template v-else>
+            <template v-else-if="status === 'form'">
                 <el-form v-if="currForm == 'user'" :model="unifiedForm" :rules="rules" ref="formRef"
                     label-position="right" label-width="auto">
                     <el-form-item label="用户名" prop="user.username">
