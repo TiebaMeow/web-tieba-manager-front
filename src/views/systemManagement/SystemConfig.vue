@@ -41,7 +41,7 @@ const formRules = reactive<FormRules>({
     ],
     'server.host': FORM_RULES.hostname,
     'server.port': FORM_RULES.port,
-    'server.key': [{ required: true, message: '请输入密钥', trigger: 'blur' }, ...(Array.isArray(FORM_RULES.key) ? FORM_RULES.key : [])],
+    'server.key': [{ required: true, message: '请输入系统密钥', trigger: 'blur' }, ...(Array.isArray(FORM_RULES.key) ? FORM_RULES.key : [])],
     'server.token_expire_days': [
         { required: true, message: '请输入登录有效期', trigger: 'blur' },
         { type: 'number', min: 0, message: '有效期必须为非负整数', trigger: 'blur' }
@@ -270,7 +270,7 @@ const dbnameHasUppercase = computed(() => {
                             <el-input-number v-model="systemConfig.server.port" :min="1" :max="65535"
                                 @change="edited = true" :controls="false"></el-input-number>
                         </el-form-item>
-                        <el-form-item label="密钥" prop="server.key">
+                        <el-form-item label="系统密钥" prop="server.key">
                             <el-input v-model="systemConfig.server.key" show-password
                                 @change="edited = true"></el-input>
                         </el-form-item>

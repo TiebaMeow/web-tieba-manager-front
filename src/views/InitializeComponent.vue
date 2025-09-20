@@ -108,10 +108,10 @@ const validateUserConfirmPassword = (_rule: unknown, value: string, callback: (e
 
 const validateSystemConfirmPassword = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
     if (unifiedForm.value.system.key && !value) {
-        return callback(new Error('请再次输入密钥'))
+        return callback(new Error('请再次输入系统密钥'))
     }
     if (value !== unifiedForm.value.system.key) {
-        return callback(new Error('两次输入的密钥不一致'))
+        return callback(new Error('两次输入的系统密钥不一致'))
     }
     callback()
 }
@@ -207,7 +207,6 @@ async function submit() {
                 </div>
             </div>
             <template v-else>
-
                 <el-form v-if="currForm == 'user'" :model="unifiedForm" :rules="rules" ref="formRef"
                     label-position="right" label-width="auto">
                     <el-form-item label="用户名" prop="user.username">
@@ -217,7 +216,8 @@ async function submit() {
                         <el-input v-model="unifiedForm.user.password" placeholder="请填写密码" show-password clearable />
                     </el-form-item>
                     <el-form-item label=" " prop="user.confirmPassword">
-                        <el-input v-model="unifiedForm.user.confirmPassword" placeholder="二次确认密码" show-password clearable />
+                        <el-input v-model="unifiedForm.user.confirmPassword" placeholder="二次确认密码" show-password
+                            clearable />
                     </el-form-item>
                     <el-form-item label="初始化密钥" prop="secureKey">
                         <el-input v-model="unifiedForm.secureKey" placeholder="请填写初始化密钥" show-password clearable />
@@ -231,11 +231,12 @@ async function submit() {
                     <el-form-item label="端口" prop="system.port">
                         <number-input v-model="unifiedForm.system.port" placeholder="36799" clearable />
                     </el-form-item>
-                    <el-form-item label="密钥" prop="system.key">
-                        <el-input v-model="unifiedForm.system.key" placeholder="请填写密钥" show-password clearable />
+                    <el-form-item label="系统密钥" prop="system.key">
+                        <el-input v-model="unifiedForm.system.key" placeholder="请填写系统密钥" show-password clearable />
                     </el-form-item>
                     <el-form-item label=" " prop="system.confirmKey">
-                        <el-input v-model="unifiedForm.system.confirmKey" placeholder="二次确认密钥" show-password clearable />
+                        <el-input v-model="unifiedForm.system.confirmKey" placeholder="二次确认系统密钥" show-password
+                            clearable />
                         <el-alert title="系统密钥将用于高级配置，登录时选填" :closable="false" show-icon style="margin-top: 13px;" />
                     </el-form-item>
                     <el-form-item label="登录有效期">
