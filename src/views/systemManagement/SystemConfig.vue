@@ -205,7 +205,7 @@ const dbnameHasUppercase = computed(() => {
 
 <template>
     <div style="max-width: 1000px; flex-grow: 1;" v-if="systemConfig">
-        <el-form ref="formRef" :model="systemConfig" :rules="formRules">
+        <el-form ref="formRef" :model="systemConfig" :rules="formRules" label-width="auto">
             <div style="max-width: 600px; margin-bottom: 200px;">
                 <div>
                     <h3>爬虫设置</h3>
@@ -237,7 +237,7 @@ const dbnameHasUppercase = computed(() => {
                         </el-select>
                     </el-form-item>
                     <template v-if="systemConfig.database.type === 'sqlite'">
-                        <el-form-item label="数据库文件路径" prop="database.path">
+                        <el-form-item label="路径" prop="database.path">
                             <div style="display: flex; width: 100%; align-items: center;">
                                 <el-input v-model="systemConfig.database.path" @change="edited = true;"></el-input>
                                 <el-tooltip content="相对于服务器的路径" placement="top">
