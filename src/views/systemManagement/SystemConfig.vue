@@ -286,7 +286,7 @@ const dbnameHasUppercase = computed(() => {
                             </el-input-number>
                         </el-form-item>
                     </div>
-                    <el-button style="position: absolute; top: 45%; left: 45%;" type="warning"
+                    <el-button style="position: absolute; top: calc(50% - 16px); left: calc(50% - 75px);" type="warning"
                         @click="confirmEditServerConfig" v-if="!confirmedEditServerConfig">
                         编辑服务器设置
                     </el-button>
