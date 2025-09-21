@@ -96,7 +96,7 @@ async function getRuleSetCopy() {
 getRuleSetCopy()
 
 function deleteAllRules() {
-    message.confirm('即将删除所有规则', '提示', () => {
+    message.confirm('即将删除所有条件', '提示', () => {
         ruleSetDataCopy.value!.rules = [];
         edited.value = true
     });
@@ -144,19 +144,19 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
 </script>
 
 <template>
-    <el-dialog v-model="ifShowAddRule" title="添加规则" :width="Math.min(DIALOG_WIDTH, 500)">
+    <el-dialog v-model="ifShowAddRule" title="添加条件" :width="Math.min(DIALOG_WIDTH, 500)">
         <div style="display: flex;">
-            <el-select v-model="addRuleOption.category" placeholder="请选择规分类"
+            <el-select v-model="addRuleOption.category" placeholder="请选择类型"
                 @change="() => addRuleOption.type = undefined" style="margin-right: 10px;">
                 <el-option v-for="category in ruleCategories" :key="category" :label="category"
                     :value="category"></el-option>
             </el-select>
-            <el-select v-if="addRuleOption.category" v-model="addRuleOption.type" placeholder="请选择规则类型">
+            <el-select v-if="addRuleOption.category" v-model="addRuleOption.type" placeholder="请选择属性">
                 <el-option v-for="type in categorizedRuleType[addRuleOption.category]" :key="type"
                     :label="ruleInfoDict[type].name" :value="type"></el-option>
             </el-select>
             <el-select v-else disabled :modelValue="1">
-                <el-option label="请先选择分类" :value="1"></el-option>
+                <el-option label="-" :value="1"></el-option>
             </el-select>
         </div>
         <div style="display:flex;justify-content: flex-end; margin-top: 20px;">
@@ -225,7 +225,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             <div style="display: flex;  align-items: flex-end;">
                 <template v-if="canEdit">
                     <el-button type="danger" @click="deleteAllRules">清空</el-button>
-                    <el-button type="primary" @click="addItem">添加</el-button>
+                    <!-- <el-button type="primary" @click="addItem">添加</el-button> -->
                     <el-button type="primary"
                         @click="router.push(ruleSetDataCopy.whitelist ? '/whitelist-rule-sets' : '/rule-sets')">返回</el-button>
                     <el-button type="success" @click="saveRuleSet">保存</el-button>
@@ -236,33 +236,29 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 </template>
             </div>
             <el-tabs v-if="ruleSetDataCopy.operations == 'custom'" v-model="activeEdit" stretch style="margin: 20px 0;">
-                <el-tab-pane label="规则" name="rule"></el-tab-pane>
+                <el-tab-pane label="条件" name="rule"></el-tab-pane>
                 <el-tab-pane label="操作" name="operation"></el-tab-pane>
             </el-tabs>
             <el-divider v-else></el-divider>
             <template v-if="activeEdit === 'rule'">
-                <template v-if="ruleSetDataCopy.rules.length">
-                    <template v-for="(rule, seq) in ruleSetDataCopy.rules" :key="seq">
-                        <component :is="RULE_COMPONENTS[ruleInfoDict[rule.type].series as keyof typeof RULE_COMPONENTS]"
-                            @change="edited = true" v-model="ruleSetDataCopy.rules[seq]"
-                            @delete="ruleSetDataCopy.rules.splice(seq, 1)" />
-                    </template>
+                <template v-for="(rule, seq) in ruleSetDataCopy.rules" :key="seq">
+                    <component :is="RULE_COMPONENTS[ruleInfoDict[rule.type].series as keyof typeof RULE_COMPONENTS]"
+                        @change="edited = true" v-model="ruleSetDataCopy.rules[seq]"
+                        @delete="ruleSetDataCopy.rules.splice(seq, 1)" />
                 </template>
-                <div v-else class="center" style="flex-wrap: wrap;">
+                <div class="center" style="flex-wrap: wrap;">
                     <h3>/ᐠ｡ꞈ｡ᐟ\</h3>
                     <div style="width: 100%; text-align: center;">
-                        <el-button @click="addItem" type="primary">点我添加规则</el-button>
+                        <el-button @click="addItem" type="primary">点我添加条件</el-button>
                     </div>
                 </div>
             </template>
             <template v-else>
-                <template v-if="customOperations.length">
-                    <template v-for="(operation, seq) in customOperations" :key="seq">
-                        <component :is="OPERATION_COMPONENTS[operation.type]" @change="edited = true"
-                            v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
-                    </template>
+                <template v-for="(operation, seq) in customOperations" :key="seq">
+                    <component :is="OPERATION_COMPONENTS[operation.type]" @change="edited = true"
+                        v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
                 </template>
-                <div v-else class="center" style="flex-wrap: wrap;">
+                <div class="center" style="flex-wrap: wrap;">
                     <h3>( Φ ω Φ )</h3>
                     <div style="width: 100%; text-align: center;">
                         <el-button @click="addItem" type="primary">点我添加操作</el-button>
