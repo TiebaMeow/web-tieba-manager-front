@@ -293,14 +293,10 @@ const selectedRulesetName = ref<string[]>([])
                     </div>
                     <el-divider></el-divider>
                     <div class="card-footer">
-                        <!-- 左侧勾选状态指示器（仅显示，不可直接点击） -->
                         <div class="select-indicator">
                             <el-checkbox :model-value="isSelected(content)" disabled />
                         </div>
-                        <!-- 右侧操作按钮 -->
                         <div class="actions">
-                            <!-- 阻止事件冒泡，避免触发卡片选择 -->
-                            <!-- <el-button type="primary" @click="gotoDetail(content)">详情</el按钮> -->
                             <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
                             <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
                             <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
