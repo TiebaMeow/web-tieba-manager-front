@@ -269,7 +269,7 @@ const hasValidLogData = computed(() => {
 })
 
 
-const logSerach = ref('')
+const logSearch = ref('')
 
 const filteredLogData = computed<StructuredLog[] | false>(() => {
     const levels = new Set(selectedLevels.value)
@@ -282,14 +282,14 @@ const filteredLogData = computed<StructuredLog[] | false>(() => {
     if (logs === false) {
         return false
     }
-    if (!logSerach.value) {
+    if (!logSearch.value) {
         return logs
     }
     try {
-        const regex = new RegExp(logSerach.value, 'i')
+        const regex = new RegExp(logSearch.value, 'i')
         return logs.filter(log => regex.test(log.message))
     } catch {
-        return logs.filter(log => log.message.toLowerCase().includes(logSerach.value.toLowerCase()))
+        return logs.filter(log => log.message.toLowerCase().includes(logSearch.value.toLowerCase()))
     }
 })
 </script>
@@ -315,7 +315,7 @@ const filteredLogData = computed<StructuredLog[] | false>(() => {
             <el-select v-model="currLog" style="width: 233px; margin-right: 10px;" :disabled="logMode === 'realtime'">
                 <el-option v-for="log in logList" :key="log" :label="log" :value="log" />
             </el-select>
-            <el-input v-model="logSerach" placeholder="搜索 | Regex" style="width: 400px;">
+            <el-input v-model="logSearch" placeholder="搜索 | Regex" style="width: 400px;">
             </el-input>
         </div>
         <el-divider style="margin-bottom: 0;" />
