@@ -37,7 +37,7 @@ interface StructuredLog {
     level: LogLevel
     message: string,
     extra: LogData['extra']
-    seq: number
+    seq?: number
 }
 
 const LevelTag = {
@@ -64,7 +64,7 @@ const logMode = ref<'history' | 'realtime'>('realtime')
 
 const realtimeLogData = ref<StructuredLog[] | false>([])
 
-function parseLogLine(line: LogData): StructuredLog | null {
+function parseLogLine(line: LogData, seq?: number): StructuredLog | null {
     try {
         const parts = line.message.split('|', 3)
         if (parts.length < 3) {
@@ -82,7 +82,7 @@ function parseLogLine(line: LogData): StructuredLog | null {
             level: line.level,
             message,
             extra: line.extra,
-            seq: Date.now() + Math.floor(Math.random() * 10000)
+            seq
         }
     } catch (e) {
         console.error('解析日志行失败', e)
@@ -122,7 +122,14 @@ async function fetchLog(file: string) {
             }
         })
         if (response.data.code === 200) {
-            currLogData.value = response.data.data.map(parseLogLine).filter((line): line is StructuredLog => line !== null)
+            currLogData.value = []
+            response.data.data.forEach((line, index) => {
+                const parsed = parseLogLine(line, index + 1)
+                if (parsed && currLogData.value) {
+                    currLogData.value.push(parsed)
+                }
+            })
+
             if (logMode.value === 'history') {
                 scrollToBottom()
             }
