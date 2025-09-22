@@ -1,0 +1,92 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+const {
+    log,
+    // isRealtime = false,
+    isSystem = false
+} = defineProps<{
+    log: {
+        time: string
+        name: string
+        level: string
+        message: string
+        seq: number
+    },
+    // isRealtime: boolean
+    isSystem: boolean
+}>()
+
+
+const LOG_LEVEL_TYPE: Record<string, string> = {
+    'DEBUG': 'info',
+    'INFO': 'primary',
+    'WARNING': 'warning',
+    'ERROR': 'danger',
+    'CRITICAL': 'danger'
+}
+
+const multiLine = computed(() => {
+    return log.message.includes('\n')
+})
+const collapseActive = ref('')
+</script>
+
+<template>
+    <div class="log-card">
+        <div class="log-card-header" :class="`level-${log.level.toLowerCase()}`">
+            <el-tag type="info" effect="plain">
+                <span>{{ log.time }}</span>
+            </el-tag>
+            <el-tag :type="LOG_LEVEL_TYPE[log.level]" effect="plain" style="width: 80px">
+                {{ log.level }}
+            </el-tag>
+            <el-tag :type="log.name === 'system' ? 'primary' : 'success'" effect="plain" v-if="isSystem"
+                style="min-width: 100px;">
+                {{ log.name }}
+            </el-tag>
+            <div v-if="multiLine" class="log-text" style="min-width: 0;"
+                :style="{ width: collapseActive ? '100%' : 'auto' }">
+                <el-collapse v-model="collapseActive" accordion>
+                    <el-collapse-item :title="`日志内容（共 ${log.message.split('\n').length} 行）`" name="1"
+                        :style="{ width: '100%' }">
+                        <div style="white-space: pre-wrap;">{{ log.message }}</div>
+                    </el-collapse-item>
+                </el-collapse>
+            </div>
+            <div v-else style="white-space: pre-wrap; word-break: break-all;" class="log-text">
+                {{ log.message }}
+            </div>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.log-card {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0,
+            0, 0.1);
+    background-color: #fff;
+}
+
+.log-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.log-time {
+    color: rebeccapurple;
+    padding: 0 5px;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.log-text {
+    font-family: 'Sarasa Mono SC Nerd', 'Source Han Mono', 'Microsoft YaHei Mono', 'JetBrains Mono', '更纱黑体 Mono SC', monospace;
+}
+</style>
