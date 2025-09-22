@@ -14,7 +14,7 @@ const {
         name: string
         level: string
         message: string
-        seq: number
+        seq?: number
         extra: {
             tid?: number
             pid?: number
