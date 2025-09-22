@@ -73,6 +73,19 @@ function removeSpecialConfirmSelected(content: Content) {
     }
 }
 
+// 检查是否选中
+function isSelected(content: Content) {
+    return !!confirmSelectedDict.value[content.pid];
+}
+
+// 切换选中状态
+function toggleSelect(content: Content) {
+    const pid = content.pid;
+    const curr = !!confirmSelectedDict.value[pid];
+    confirmSelectedDict.value[pid] = !curr;
+    confirmSelectedCount.value += curr ? -1 : 1;
+}
+
 async function fetchConfirmList() {
     try {
         const response = await TokenRequest.get<BaseResponse<ConfirmData[]>>({
@@ -245,9 +258,10 @@ const selectedRulesetName = ref<string[]>([])
             <el-divider />
             <div v-for="({ content, rule_set_name }, index) in confirmList" style="margin-bottom: 20px;"
                 :key="content.pid">
-                <el-card>
+                <!-- 点击整张卡片切换选中 -->
+                <el-card :class="{ 'confirm-card-selected': isSelected(content) }" @click="toggleSelect(content)">
                     <div class="head">
-                        <div class="avatar-container" @click="gotoPortrait(content.user.portrait)">
+                        <div class="avatar-container" @click.stop="gotoPortrait(content.user.portrait)">
                             <img :src="TokenRequest.host + '/resources/portrait/' + content.user.portrait" alt="头像"
                                 loading="lazy" />
                         </div>
@@ -262,8 +276,10 @@ const selectedRulesetName = ref<string[]>([])
                     <div class="body>">
                         <div style="margin-bottom: 10px; display: flex;">
                             <h3 style="margin: 0; margin-bottom: 10px; flex-grow: 1;">{{ getContentMark(content) }}</h3>
-                            <el-checkbox v-model="confirmSelectedDict[content.pid]"
-                                @change="handleConfirmSelected"></el-checkbox>
+                            <!-- 保留视觉指示器，但不可直接点击（卡片点击控制选中） -->
+                            <div style="align-self: center;">
+                                <el-checkbox :model-value="isSelected(content)" disabled />
+                            </div>
                         </div>
                         <p v-if="content.text" style="margin: 0; word-break: break-all;">
                             <template v-for="(line, index) in content.text.split('\n')" :key="index">
@@ -277,10 +293,11 @@ const selectedRulesetName = ref<string[]>([])
                     </div>
                     <el-divider></el-divider>
                     <div style="display: flex; justify-content: flex-end;">
+                        <!-- 阻止事件冒泡，避免触发卡片选择 -->
                         <!-- <el-button type="primary" @click="gotoDetail(content)">详情</el-button> -->
-                        <el-button type="primary" @click="gotoPost(content)">原贴</el-button>
-                        <el-button type="success" @click="confirm('ignore', content, index)">忽略</el-button>
-                        <el-button type="danger" @click="confirm('execute', content, index)">确认</el-button>
+                        <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
+                        <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
+                        <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
                     </div>
                 </el-card>
             </div>
@@ -338,5 +355,22 @@ const selectedRulesetName = ref<string[]>([])
 .image-container img {
     height: 110px;
     margin: 0 10px 10px 0;
+}
+
+/* 整卡可点击样式、hover 与 选中样式 */
+.el-card {
+    cursor: pointer;
+    transition: box-shadow .18s ease, transform .12s ease, border-color .12s ease, background-color .12s ease;
+}
+.el-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+/* 选中状态样式 */
+.confirm-card-selected {
+    border: 1px solid rgba(56,142,255,0.8);
+    background-color: #f5fbff;
+    box-shadow: 0 8px 22px rgba(56,142,255,0.06);
 }
 </style>
