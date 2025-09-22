@@ -363,7 +363,7 @@ const selectedRulesetName = ref<string[]>([])
     transition: box-shadow .18s ease, transform .12s ease, border-color .12s ease, background-color .12s ease;
 }
 .el-card:hover {
-    transform: translateY(-3px);
+    /* transform: translateY(-3px); */
     box-shadow: 0 8px 18px rgba(0,0,0,0.06);
 }
 
