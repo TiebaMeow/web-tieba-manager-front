@@ -12,7 +12,7 @@ import LogCard from './LogCard.vue';
 
 const route = useRoute();
 
-type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL'
+type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL'
 
 const system = computed(() => route.path.startsWith('/system-log'))
 const apiUrl = computed(() => system.value ? '/api/system/log/' : '/api/log/')
@@ -45,7 +45,7 @@ const LevelTag = {
     INFO: 'primary',
     WARN: 'warning',
     ERROR: 'danger',
-    FATAL: 'danger',
+    CRITICAL: 'danger',
 }
 
 const logList = ref<string[]>([]);
