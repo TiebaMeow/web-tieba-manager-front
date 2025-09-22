@@ -273,13 +273,13 @@ const selectedRulesetName = ref<string[]>([])
                             <el-tag style="font-size: 14px;">{{ rule_set_name }}</el-tag>
                         </div>
                     </div>
-                    <div class="body>">
+                    <div class="body">
                         <div style="margin-bottom: 10px; display: flex;">
                             <h3 style="margin: 0; margin-bottom: 10px; flex-grow: 1;">{{ getContentMark(content) }}</h3>
                             <!-- 保留视觉指示器，但不可直接点击（卡片点击控制选中） -->
-                            <div style="align-self: center;">
+                            <!-- <div style="align-self: center;">
                                 <el-checkbox :model-value="isSelected(content)" disabled />
-                            </div>
+                            </div> -->
                         </div>
                         <p v-if="content.text" style="margin: 0; word-break: break-all;">
                             <template v-for="(line, index) in content.text.split('\n')" :key="index">
@@ -292,12 +292,19 @@ const selectedRulesetName = ref<string[]>([])
                             :key="image.hash" alt="图片" loading="lazy" />
                     </div>
                     <el-divider></el-divider>
-                    <div style="display: flex; justify-content: flex-end;">
-                        <!-- 阻止事件冒泡，避免触发卡片选择 -->
-                        <!-- <el-button type="primary" @click="gotoDetail(content)">详情</el-button> -->
-                        <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
-                        <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
-                        <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
+                    <div class="card-footer">
+                        <!-- 左侧勾选状态指示器（仅显示，不可直接点击） -->
+                        <div class="select-indicator">
+                            <el-checkbox :model-value="isSelected(content)" disabled />
+                        </div>
+                        <!-- 右侧操作按钮 -->
+                        <div class="actions">
+                            <!-- 阻止事件冒泡，避免触发卡片选择 -->
+                            <!-- <el-button type="primary" @click="gotoDetail(content)">详情</el按钮> -->
+                            <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
+                            <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
+                            <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
+                        </div>
                     </div>
                 </el-card>
             </div>
@@ -372,5 +379,101 @@ const selectedRulesetName = ref<string[]>([])
     border: 1px solid rgba(56,142,255,0.8);
     background-color: #f5fbff;
     box-shadow: 0 8px 22px rgba(56,142,255,0.06);
+}
+
+/* 新增：卡片底栏与勾选指示器样式 */
+.card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.select-indicator {
+    display: flex;
+    align-items: center;
+    pointer-events: none; /* 防止覆盖卡片点击 */
+}
+
+/* 美化：仅作用于底栏指示器中的 el-checkbox */
+.card-footer .select-indicator {
+    /* 可按需微调主题色与尺寸 */
+    --indicator-size: 18px;
+    --indicator-radius: 6px;
+    --indicator-border: 2px;
+    --indicator-accent: #388eff;
+    --indicator-bg: #f7f9fc;
+    --indicator-border-color: #c8d3e3;
+}
+
+/* 去除禁用态的灰化，但仍不可点击 */
+.card-footer .select-indicator :deep(.el-checkbox.is-disabled) {
+    opacity: 1;
+}
+
+/* 复选框主体尺寸与基础样式 */
+.card-footer .select-indicator :deep(.el-checkbox__inner) {
+    width: var(--indicator-size);
+    height: var(--indicator-size);
+    border-radius: var(--indicator-radius);
+    border: var(--indicator-border) solid var(--indicator-border-color);
+    background-color: var(--indicator-bg);
+    transition: all .18s ease;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.03);
+    position: relative;             /* 新增：让 ::after 基于容器定位 */
+    display: inline-flex;           /* 新增：为将来内容对齐预留 */
+    align-items: center;            /* 新增 */
+    justify-content: center;        /* 新增 */
+}
+
+/* 勾选态高亮 */
+.card-footer .select-indicator :deep(.is-checked .el-checkbox__inner) {
+    background-color: var(--indicator-accent);
+    border-color: var(--indicator-accent);
+    box-shadow: 0 4px 10px rgba(56,142,255,.18);
+}
+
+/* 关闭 EP 默认的打勾描边，避免与自定义“✓”重叠 */
+.card-footer .select-indicator :deep(.el-checkbox__inner::before) {
+  content: none;
+  display: none !important;
+}
+
+/* 未选中：隐藏勾，保持居中基准（同时重置 EP 默认样式） */
+.card-footer .select-indicator :deep(.el-checkbox__inner::after) {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(var(--indicator-size) * var(--check-font-scale));
+  line-height: 1;
+  transform: translate(-50%, -56%) scale(.9);
+  opacity: 0;
+  transition: transform .16s ease-out, opacity .12s ease-out;
+
+  /* 重置 Element Plus 默认 ::after 勾形样式 */
+  border: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+  box-sizing: content-box !important;
+}
+
+/* 选中：显示“✓”，覆盖 EP 默认的旋转/缩放 */
+.card-footer .select-indicator :deep(.el-checkbox__input.is-checked .el-checkbox__inner::after) {
+  content: "✓";
+  opacity: 1;
+  transform: translate(-50%, -56%) scale(1);
+}
+
+/* 卡片选中时，指示器略放大强调 */
+.confirm-card-selected .card-footer .select-indicator :deep(.el-checkbox__inner) {
+    transform: scale(1.05);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
 }
 </style>
