@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { Document, User } from '@element-plus/icons-vue';
+import { gotoPortrait, gotoPost } from '@/lib/utils';
+
 
 const {
     log,
@@ -12,6 +15,12 @@ const {
         level: string
         message: string
         seq: number
+        extra: {
+            tid?: number
+            pid?: number
+            uid?: number
+            portrait?: string
+        }
     },
     // isRealtime: boolean
     isSystem: boolean
@@ -57,6 +66,14 @@ const collapseActive = ref('')
             <div v-else style="white-space: pre-wrap; word-break: break-all;" class="log-text">
                 {{ log.message }}
             </div>
+            <div style="display: flex;flex-grow: 1;">
+
+            </div>
+            <el-button-group>
+                <el-button v-if="log.extra.portrait" :icon="User" @click="gotoPortrait(log.extra.portrait)" />
+                <el-button v-if="log.extra.tid && log.extra.pid" :icon="Document"
+                    @click="gotoPost(log.extra.tid, log.extra.pid)" />
+            </el-button-group>
         </div>
     </div>
 </template>

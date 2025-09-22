@@ -97,6 +97,24 @@ export function gotoPortrait(portrait: string) {
     window.open('https://tieba.baidu.com/home/main?id=' + portrait, '_blank')
 }
 
-export function gotoPost(thread: Content) {
+
+export function gotoPost(tid: number, pid: number): void
+export function gotoPost(thread: Content): void
+export function gotoPost(thread_or_tid: Content | number, pid?: number): void {
+    if (typeof thread_or_tid === 'number') {
+        if (pid === undefined) {
+            throw new Error('pid is required when tid is provided')
+        }
+        window.open(`https://tieba.baidu.com/p/${thread_or_tid}?pid=${pid}#${pid}`, '_blank')
+        return
+    }
+    const thread = thread_or_tid
+    if (thread.type === 'thread') {
+        window.open(`https://tieba.baidu.com/p/${thread.tid}`, '_blank')
+        return
+    }
+    if (thread.pid === undefined) {
+        throw new Error('pid is required when thread is not a thread')
+    }
     window.open(`https://tieba.baidu.com/p/${thread.tid}?pid=${thread.pid}#${thread.pid}`, '_blank')
 }
