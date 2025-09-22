@@ -81,7 +81,7 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         meta: {
             title: '日志'
         },
-        component: () => import('../views/LogComponent.vue')
+        component: () => import('../views/log/LogComponent.vue')
     },
 ]
 
@@ -102,7 +102,7 @@ export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
             title: '系统日志',
             system: true
         },
-        component: () => import('../views/LogComponent.vue')
+        component: () => import('../views/log/LogComponent.vue')
     },
     {
         path: '/system-config',
