@@ -446,7 +446,7 @@ const selectedRulesetName = ref<string[]>([])
   top: 50%;
   color: #fff;
   font-weight: 700;
-  font-size: calc(var(--indicator-size) * var(--check-font-scale));
+  font-size: calc(var(--indicator-size) * 0.8);
   line-height: 1;
   transform: translate(-50%, -56%) scale(.9);
   opacity: 0;
