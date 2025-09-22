@@ -26,6 +26,7 @@ interface LogData {
         tid?: number
         pid?: number
         uid?: number
+        portrait?: string
     }
 }
 
@@ -34,7 +35,8 @@ interface StructuredLog {
     time: string
     name: string
     level: LogLevel
-    message: string
+    message: string,
+    extra: LogData['extra']
     seq: number
 }
 
@@ -79,6 +81,7 @@ function parseLogLine(line: LogData): StructuredLog | null {
             name: line.name,
             level: line.level,
             message,
+            extra: line.extra,
             seq: Date.now() + Math.floor(Math.random() * 10000)
         }
     } catch (e) {
