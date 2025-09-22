@@ -467,11 +467,6 @@ const selectedRulesetName = ref<string[]>([])
   transform: translate(-50%, -56%) scale(1);
 }
 
-/* 卡片选中时，指示器略放大强调 */
-.confirm-card-selected .card-footer .select-indicator :deep(.el-checkbox__inner) {
-    transform: scale(1.05);
-}
-
 .actions {
     display: flex;
     gap: 8px;
