@@ -57,7 +57,8 @@ const loadingLog = ref(false)
 const innerRef = ref<HTMLElement | null>(null)
 const scrollbarRef = ref<ScrollbarInstance | null>(null)
 
-const logMode = ref<'history' | 'realtime'>('history')
+const logMode = ref<'history' | 'realtime'>('realtime')
+// TODO 优化history模式下的日志加载性能
 
 const realtimeLogData = ref<StructuredLog[] | false>([])
 
@@ -119,7 +120,9 @@ async function fetchLog(file: string) {
         })
         if (response.data.code === 200) {
             currLogData.value = response.data.data.map(parseLogLine).filter((line): line is StructuredLog => line !== null)
-            scrollToBottom()
+            if (logMode.value === 'history') {
+                scrollToBottom()
+            }
         } else {
             message.notify(response.data.message, message.error)
             currLogData.value = false
@@ -303,8 +306,8 @@ const filteredLogData = computed<StructuredLog[] | false>(() => {
                 </template>
             </el-select>
             <el-radio-group v-model="logMode" style="margin-right: 10px; flex-shrink: 0;">
-                <el-radio-button label="历史" value="history" />
                 <el-radio-button label="实时" value="realtime" />
+                <el-radio-button label="历史" value="history" />
             </el-radio-group>
             <el-select v-model="currLog" style="width: 233px; margin-right: 10px;" :disabled="logMode === 'realtime'">
                 <el-option v-for="log in logList" :key="log" :label="log" :value="log" />
