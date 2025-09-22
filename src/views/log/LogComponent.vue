@@ -12,13 +12,15 @@ import LogCard from './LogCard.vue';
 
 const route = useRoute();
 
+type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL'
+
 const system = computed(() => route.path.startsWith('/system-log'))
 const apiUrl = computed(() => system.value ? '/api/system/log/' : '/api/log/')
 const selectedLevels = ref<LogLevel[]>(['INFO', 'WARN', 'ERROR'])
 
 interface LogData {
     message: string
-    info: string
+    level: LogLevel
     name: string
     extra: {
         tid?: number
@@ -259,19 +261,56 @@ watch(system, () => {
 const hasValidLogData = computed(() => {
     return logMode.value === 'history' ? currLogData.value !== false : realtimeLogData.value !== false
 })
+
+
+const logSerach = ref('')
+
+const filteredLogData = computed<StructuredLog[] | false>(() => {
+    const levels = new Set(selectedLevels.value)
+    let logs: StructuredLog[] | false
+    if (logMode.value === 'history') {
+        logs = currLogData.value === false ? false : currLogData.value.filter(log => levels.has(log.level))
+    } else {
+        logs = realtimeLogData.value === false ? false : realtimeLogData.value.filter(log => levels.has(log.level))
+    }
+    if (logs === false) {
+        return false
+    }
+    if (!logSerach.value) {
+        return logs
+    }
+    try {
+        const regex = new RegExp(logSerach.value, 'i')
+        return logs.filter(log => regex.test(log.message))
+    } catch {
+        return logs.filter(log => log.message.toLowerCase().includes(logSerach.value.toLowerCase()))
+    }
+})
 </script>
 
 <template>
-    <div style="flex-grow: 1;max-width: 1200px" v-loading="loadingList">
-        <h2>日志</h2>
-        <div style="display: flex; align-items: center;">
+    <div style="flex-grow: 1" v-loading="loadingList">
+        <h2>{{ system ? "系统" : '' }}日志</h2>
+        <div style="display: flex; align-items: center; flex-wrap: wrap;">
+            <el-select v-model="selectedLevels" multiple placeholder="选择日志级别" style="width: 220px; margin-right: 10px;">
+                <el-option v-for="(tag, level) in LevelTag" :key="level" :value="level">
+                    <el-tag :type="tag" effect="plain">{{ level }}</el-tag>
+                </el-option>
+                <template #tag>
+                    <el-tag size="small" :type="LevelTag[level]" effect="plain" v-for="level in selectedLevels"
+                        :key="level">{{ level
+                        }}</el-tag>
+                </template>
+            </el-select>
             <el-radio-group v-model="logMode" style="margin-right: 10px; flex-shrink: 0;">
                 <el-radio-button label="历史" value="history" />
                 <el-radio-button label="实时" value="realtime" />
             </el-radio-group>
-            <el-select v-model="currLog" style="width: 233px" :disabled="logMode === 'realtime'">
+            <el-select v-model="currLog" style="width: 233px; margin-right: 10px;" :disabled="logMode === 'realtime'">
                 <el-option v-for="log in logList" :key="log" :label="log" :value="log" />
             </el-select>
+            <el-input v-model="logSerach" placeholder="搜索 | Regex" style="width: 400px;">
+            </el-input>
         </div>
         <el-divider style="margin-bottom: 0;" />
         <div class="log-container" v-loading="loadingLog">
