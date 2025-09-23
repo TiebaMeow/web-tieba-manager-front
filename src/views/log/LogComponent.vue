@@ -210,7 +210,17 @@ const RealtimeLog = new class RealtimeLog {
 
         eventSource.onmessage = (event) => {
             try {
+                if (event.data === '[DONE]') {
+                    // 初始化完成标志
+                    nextTick(() => {
+                        if (logMode.value === 'realtime') {
+                            scrollToBottom()
+                        }
+                    })
+                    return
+                }
                 const data = JSON.parse(event.data) as LogData
+
                 if (realtimeLogData.value === false) {
                     realtimeLogData.value = []
                     return
