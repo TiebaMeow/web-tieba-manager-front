@@ -228,6 +228,17 @@ const RealtimeLog = new class RealtimeLog {
                 const parsed = parseLogLine(data)
                 if (parsed) {
                     realtimeLogData.value.push(parsed)
+
+                    if (scrollbarRef.value && innerRef.value && scrollbarRef.value.wrapRef) {
+                        const { scrollTop, clientHeight } = scrollbarRef.value.wrapRef
+                        // 极限值为 +110px 允许50px误差
+                        const isAtBottom = scrollTop + clientHeight >= innerRef.value.scrollHeight + 60
+
+                        // 如果当前在底部，则自动滚动到底部
+                        if (logMode.value === 'realtime' && isAtBottom) {
+                            scrollToBottom()
+                        }
+                    }
                 }
             } catch {
                 message.notify('解析日志数据失败', message.error)
