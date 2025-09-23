@@ -241,7 +241,7 @@ const selectedRulesetName = ref<string[]>([])
     <div style="position: absolute; top: 0px; right: 0px; padding: 10px;">
         自动刷新
         <el-checkbox v-model="AutoRefresh.enable.value"></el-checkbox>
-        <el-progress v-if="AutoRefresh.enable.value && confirmList && confirmList.length > 0"
+        <el-progress v-if="AutoRefresh.enable.value && confirmList"
             :percentage="AutoRefresh.percentage.value" :show-text="false" />
     </div>
     <div style="max-width: 1000px; position: relative;;flex-grow: 1;">
@@ -310,8 +310,8 @@ const selectedRulesetName = ref<string[]>([])
             style="max-width: 600px; padding: 10px; display: flex; justify-self: center; align-items: center; flex-wrap: wrap;">
             <div style="width: 350px; text-align: center;">
                 <h2>没有需要确认的项目</h2>
-                <el-progress v-if="AutoRefresh.enable.value" :percentage="AutoRefresh.percentage.value"
-                    :show-text="false" />
+                <!-- <el-progress v-if="AutoRefresh.enable.value" :percentage="AutoRefresh.percentage.value"
+                    :show-text="false" /> -->
             </div>
         </div>
         <div v-else style="max-width: 600px; padding: 10px; display: flex; justify-self: center; align-items: center;"
