@@ -87,10 +87,7 @@ function toggleSelect(content: Content) {
 }
 
 // vue computed 表示用户是否有选中内容 boolean
-const ifSelected = computed(() => {
-    return confirmSelectedCount.value > 0
-
-})
+const ifSelected = computed(() => confirmSelectedCount.value > 0)
 
 
 async function fetchConfirmList() {
