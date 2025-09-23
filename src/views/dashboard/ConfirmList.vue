@@ -86,6 +86,13 @@ function toggleSelect(content: Content) {
     confirmSelectedCount.value += curr ? -1 : 1;
 }
 
+// vue computed 表示用户是否有选中内容 boolen
+const ifSelected = computed(() => {
+    return confirmSelectedCount.value > 0
+
+})
+
+
 async function fetchConfirmList() {
     try {
         const response = await TokenRequest.get<BaseResponse<ConfirmData[]>>({
@@ -188,26 +195,6 @@ function confirmSelectedRuleset(action: 'ignore' | 'execute') {
     })
 }
 
-
-// function gotoDetail(content: Content) {
-//     router.push(`/handle-details/1/${content.pid}`)
-// }
-
-
-// vue computed 表示用户是否有选中内容 boolen
-const ifSelected = computed(() => {
-    return confirmSelectedCount.value > 0
-
-})
-
-function handleConfirmSelected(value: boolean) {
-    if (value) {
-        confirmSelectedCount.value += 1
-    } else {
-        confirmSelectedCount.value -= 1
-    }
-}
-
 const ifShowBatchDialog = ref(false)
 
 const confirmRulesetName = computed(() => {
@@ -241,8 +228,8 @@ const selectedRulesetName = ref<string[]>([])
     <div style="position: absolute; top: 0px; right: 0px; padding: 10px;">
         自动刷新
         <el-checkbox v-model="AutoRefresh.enable.value"></el-checkbox>
-        <el-progress v-if="AutoRefresh.enable.value && confirmList"
-            :percentage="AutoRefresh.percentage.value" :show-text="false" />
+        <el-progress v-if="AutoRefresh.enable.value && confirmList" :percentage="AutoRefresh.percentage.value"
+            :show-text="false" />
     </div>
     <div style="max-width: 1000px; position: relative;;flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;" v-if="confirmList && confirmList.length > 0">
@@ -365,16 +352,17 @@ const selectedRulesetName = ref<string[]>([])
     cursor: pointer;
     transition: box-shadow .18s ease, transform .12s ease, border-color .12s ease, background-color .12s ease;
 }
+
 .el-card:hover {
     /* transform: translateY(-3px); */
-    box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
 }
 
 /* 选中状态样式 */
 .confirm-card-selected {
-    border: 1px solid rgba(56,142,255,0.8);
+    border: 1px solid rgba(56, 142, 255, 0.8);
     background-color: #f5fbff;
-    box-shadow: 0 8px 22px rgba(56,142,255,0.06);
+    box-shadow: 0 8px 22px rgba(56, 142, 255, 0.06);
 }
 
 /* 新增：卡片底栏与勾选指示器样式 */
@@ -387,7 +375,8 @@ const selectedRulesetName = ref<string[]>([])
 .select-indicator {
     display: flex;
     align-items: center;
-    pointer-events: none; /* 防止覆盖卡片点击 */
+    pointer-events: none;
+    /* 防止覆盖卡片点击 */
 }
 
 /* 美化：仅作用于底栏指示器中的 el-checkbox */
@@ -414,53 +403,57 @@ const selectedRulesetName = ref<string[]>([])
     border: var(--indicator-border) solid var(--indicator-border-color);
     background-color: var(--indicator-bg);
     transition: all .18s ease;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.03);
-    position: relative;             /* 新增：让 ::after 基于容器定位 */
-    display: inline-flex;           /* 新增：为将来内容对齐预留 */
-    align-items: center;            /* 新增 */
-    justify-content: center;        /* 新增 */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, .03);
+    position: relative;
+    /* 新增：让 ::after 基于容器定位 */
+    display: inline-flex;
+    /* 新增：为将来内容对齐预留 */
+    align-items: center;
+    /* 新增 */
+    justify-content: center;
+    /* 新增 */
 }
 
 /* 勾选态高亮 */
 .card-footer .select-indicator :deep(.is-checked .el-checkbox__inner) {
     background-color: var(--indicator-accent);
     border-color: var(--indicator-accent);
-    box-shadow: 0 4px 10px rgba(56,142,255,.18);
+    box-shadow: 0 4px 10px rgba(56, 142, 255, .18);
 }
 
 /* 关闭 EP 默认的打勾描边，避免与自定义“✓”重叠 */
 .card-footer .select-indicator :deep(.el-checkbox__inner::before) {
-  content: none;
-  display: none !important;
+    content: none;
+    display: none !important;
 }
 
 /* 未选中：隐藏勾，保持居中基准（同时重置 EP 默认样式） */
 .card-footer .select-indicator :deep(.el-checkbox__inner::after) {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  color: #fff;
-  font-weight: 700;
-  font-size: calc(var(--indicator-size) * 0.8);
-  line-height: 1;
-  transform: translate(-50%, -56%) scale(.9);
-  opacity: 0;
-  transition: transform .16s ease-out, opacity .12s ease-out;
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: calc(var(--indicator-size) * 0.8);
+    line-height: 1;
+    transform: translate(-50%, -56%) scale(.9);
+    opacity: 0;
+    transition: transform .16s ease-out, opacity .12s ease-out;
 
-  /* 重置 Element Plus 默认 ::after 勾形样式 */
-  border: 0 !important;
-  width: auto !important;
-  height: auto !important;
-  background: transparent !important;
-  box-sizing: content-box !important;
+    /* 重置 Element Plus 默认 ::after 勾形样式 */
+    border: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    box-sizing: content-box !important;
 }
 
 /* 选中：显示“✓”，覆盖 EP 默认的旋转/缩放 */
 .card-footer .select-indicator :deep(.el-checkbox__input.is-checked .el-checkbox__inner::after) {
-  content: "✓";
-  opacity: 1;
-  transform: translate(-50%, -56%) scale(1);
+    content: "✓";
+    opacity: 1;
+    transform: translate(-50%, -56%) scale(1);
 }
 
 .actions {
