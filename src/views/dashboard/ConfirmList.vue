@@ -3,7 +3,7 @@ import { ref, computed, onUnmounted } from 'vue';
 import type { Ref, ComputedRef } from 'vue'
 
 import TokenRequest from '@/lib/token';
-import { formatDate, getContentMark } from '@/lib/utils';
+import { formatDate, getContentMark, iterateObject } from '@/lib/utils';
 import message from '@/lib/message';
 import { gotoPost, gotoPortrait } from '@/lib/utils';
 import { DIALOG_WIDTH } from '@/lib/constance';
@@ -81,9 +81,9 @@ function isSelected(content: Content) {
 // 切换选中状态
 function toggleSelect(content: Content) {
     const pid = content.pid;
-    const curr = !!confirmSelectedDict.value[pid];
-    confirmSelectedDict.value[pid] = !curr;
-    confirmSelectedCount.value += curr ? -1 : 1;
+    const selected = !!confirmSelectedDict.value[pid];
+    confirmSelectedDict.value[pid] = !selected;
+    confirmSelectedCount.value += selected ? -1 : 1;
 }
 
 // vue computed 表示用户是否有选中内容 boolen
@@ -98,8 +98,21 @@ async function fetchConfirmList() {
         const response = await TokenRequest.get<BaseResponse<ConfirmData[]>>({
             url: '/api/confirm/get_list'
         })
-        confirmList.value = response.data.data;
-        clearConfirmSelected()
+        const newPids = new Set<number>()
+        response.data.data.forEach(item => {
+            newPids.add(item.content.pid)
+        })
+
+        iterateObject(confirmSelectedDict.value, (key, value) => {
+            const pid = Number(key)
+            if (!newPids.has(pid)) {
+                delete confirmSelectedDict.value[pid]
+                if (value) {
+                    confirmSelectedCount.value -= 1
+                }
+            }
+        })
+        confirmList.value = response.data.data
     } catch {
         message.notify('数据获取失败', message.error)
     }
