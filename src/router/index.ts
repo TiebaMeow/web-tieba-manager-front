@@ -28,20 +28,20 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/dashboard/UserConfig.vue')
     },
     {
-        path: '/rule-sets',
-        name: 'ruleSets',
+        path: '/rules',
+        name: 'rules',
         meta: {
             title: '违规规则'
         },
-        component: () => import('../views/dashboard/RuleSets.vue')
+        component: () => import('../views/dashboard/RuleList.vue')
     },
     {
-        path: '/whitelist-rule-sets',
-        name: 'whitelistRuleSets',
+        path: '/whitelist-rules',
+        name: 'whitelistRules',
         meta: {
             title: '信任规则'
         },
-        component: () => import('../views/dashboard/RuleSets.vue')
+        component: () => import('../views/dashboard/RuleList.vue')
     },
     {
         path: '/confirm-list',
@@ -52,28 +52,28 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/dashboard/ConfirmList.vue')
     },
     {
-        path: '/rule-sets/:id(\\d+)',
-        name: 'ruleSetDetail',
+        path: '/rules/:id(\\d+)',
+        name: 'ruleDetail',
         meta: {
             hide: true
         },
-        component: () => import('../views/dashboard/EditRuleSet.vue'),
+        component: () => import('../views/dashboard/EditRule.vue'),
     },
     {
-        path: '/rule-sets/new',
-        name: 'newRuleSet',
+        path: '/rules/new',
+        name: 'newRule',
         meta: {
             hide: true
         },
-        component: () => import('../views/dashboard/EditRuleSet.vue')
+        component: () => import('../views/dashboard/EditRule.vue')
     },
     {
-        path: '/whitelist-rule-sets/new',
-        name: 'newWhitelistRuleSet',
+        path: '/whitelist-rules/new',
+        name: 'newWhitelistRule',
         meta: {
             hide: true
         },
-        component: () => import('../views/dashboard/EditRuleSet.vue')
+        component: () => import('../views/dashboard/EditRule.vue')
     },
     {
         path: '/user-log',

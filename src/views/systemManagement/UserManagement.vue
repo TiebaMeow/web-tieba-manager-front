@@ -130,7 +130,7 @@ async function createCode() {
             username: '',
             permission: {
                 can_edit_forum: true,
-                can_edit_rule_set: true
+                can_edit_rule: true
             },
             forum: '',
             code: ''
@@ -154,7 +154,7 @@ async function createCode() {
                 <el-checkbox v-model="currUser.permission.can_edit_forum">
                     可编辑监控贴吧
                 </el-checkbox>
-                <el-checkbox v-model="currUser.permission.can_edit_rule_set">
+                <el-checkbox v-model="currUser.permission.can_edit_rule">
                     可编辑规则
                 </el-checkbox>
             </el-form-item>
@@ -181,7 +181,7 @@ async function createCode() {
                 <el-checkbox v-model="currUser.permission.can_edit_forum">
                     可编辑监控贴吧
                 </el-checkbox>
-                <el-checkbox v-model="currUser.permission.can_edit_rule_set">
+                <el-checkbox v-model="currUser.permission.can_edit_rule">
                     可编辑规则
                 </el-checkbox>
             </el-form-item>

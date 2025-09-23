@@ -11,7 +11,7 @@ import { SwitchTokenEvent } from '@/lib/data/tokenManager';
 
 interface ConfirmData {
     content: Thread | Post | Comment
-    rule_set_name: string
+    rule_name: string
     process_time: number
 }
 
@@ -188,18 +188,18 @@ function confirmSelected(action: 'ignore' | 'execute') {
     })
 }
 
-function confirmSelectedRuleset(action: 'ignore' | 'execute') {
-    if (selectedRulesetName.value.length === 0) {
+function confirmSelectedRule(action: 'ignore' | 'execute') {
+    if (selectedRuleName.value.length === 0) {
         message.notify('没有选中的规则', message.error)
         return
     }
 
-    message.confirm(`即将${ACTION_DICT[action]}规则${selectedRulesetName.value.map(item => `[${item}]`).join(',')}的内容`, '提示', () => {
-        if (!confirmList.value || !selectedRulesetName.value) {
+    message.confirm(`即将${ACTION_DICT[action]}规则${selectedRuleName.value.map(item => `[${item}]`).join(',')}的内容`, '提示', () => {
+        if (!confirmList.value || !selectedRuleName.value) {
             message.notify('没有内容可以操作', message.error)
             return
         }
-        const contents = confirmList.value.filter(item => selectedRulesetName.value.includes(item.rule_set_name)).map(item => item.content)
+        const contents = confirmList.value.filter(item => selectedRuleName.value.includes(item.rule_name)).map(item => item.content)
         ifShowBatchDialog.value = false
         batchconfirm(action, contents)
     })
@@ -207,31 +207,31 @@ function confirmSelectedRuleset(action: 'ignore' | 'execute') {
 
 const ifShowBatchDialog = ref(false)
 
-const confirmRulesetName = computed(() => {
+const confirmRuleName = computed(() => {
     if (!confirmList.value) {
         return []
     }
-    const rulesetType = confirmList.value.map(item => item.rule_set_name)
-    return Array.from(new Set(rulesetType))
+    const ruleType = confirmList.value.map(item => item.rule_name)
+    return Array.from(new Set(ruleType))
 })
-const selectedRulesetName = ref<string[]>([])
+const selectedRuleName = ref<string[]>([])
 
 </script>
 
 <template>
     <el-dialog v-model="ifShowBatchDialog" title="请选择要操作的规则" :width="Math.min(DIALOG_WIDTH, 400)"
-        @closed="selectedRulesetName = []">
-        <el-checkbox-group v-model="selectedRulesetName" style="margin-bottom: 20px;">
-            <el-checkbox v-for="name in confirmRulesetName" :value="name" :key="name">
+        @closed="selectedRuleName = []">
+        <el-checkbox-group v-model="selectedRuleName" style="margin-bottom: 20px;">
+            <el-checkbox v-for="name in confirmRuleName" :value="name" :key="name">
                 <el-tag style="font-size: 14px;">{{ name }}</el-tag><br />
             </el-checkbox>
         </el-checkbox-group>
         <div style="display: flex; justify-content: flex-end;">
             <el-button type="primary" @click="ifShowBatchDialog = false">取消
             </el-button>
-            <el-button type="success" @click="confirmSelectedRuleset('ignore')">忽略
+            <el-button type="success" @click="confirmSelectedRule('ignore')">忽略
             </el-button>
-            <el-button type="danger" @click="confirmSelectedRuleset('execute')">确认
+            <el-button type="danger" @click="confirmSelectedRule('execute')">确认
             </el-button>
         </div>
     </el-dialog>
@@ -253,7 +253,7 @@ const selectedRulesetName = ref<string[]>([])
                 </el-button>
             </div>
             <el-divider />
-            <div v-for="({ content, rule_set_name }, index) in confirmList" style="margin-bottom: 20px;"
+            <div v-for="({ content, rule_name }, index) in confirmList" style="margin-bottom: 20px;"
                 :key="content.pid">
                 <!-- 点击整张卡片切换选中 -->
                 <el-card :class="{ 'confirm-card-selected': isSelected(content) }" @click="toggleSelect(content)">
@@ -267,7 +267,7 @@ const selectedRulesetName = ref<string[]>([])
                             <span style="color: grey">{{ formatDate(content.create_time) }}</span>
                         </div>
                         <div style="display: flex; flex-grow: 1; justify-content: flex-end;">
-                            <el-tag style="font-size: 14px;">{{ rule_set_name }}</el-tag>
+                            <el-tag style="font-size: 14px;">{{ rule_name }}</el-tag>
                         </div>
                     </div>
                     <div class="body">
