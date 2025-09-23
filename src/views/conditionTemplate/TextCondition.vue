@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
+import { conditionInfoDict, type Condition, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
-interface TextRule extends Rule {
+interface TextCondition extends Condition {
     options: {
         text?: string
         is_regex?: boolean
@@ -10,7 +10,7 @@ interface TextRule extends Rule {
     }
 }
 
-const data = defineModel<TextRule>();
+const data = defineModel<TextCondition>();
 const emit = defineEmits<{
     delete: [void]
     change: [void]
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 
 
 <template>
-    <CustomCard v-if="data" :name="ruleInfoDict[data.type].name" @delete="emit('delete')">
+    <CustomCard v-if="data" :name="conditionInfoDict[data.type].name" @delete="emit('delete')">
         <div style="margin-bottom: 10px; display: flex; flex-grow: 1;">
             <div style="flex-grow: 1; padding: 0 20px;">
                 <el-checkbox v-model="data.options.is_regex" style="margin-right: 50px;" :disabled="!canEdit"

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
+import { conditionInfoDict, type Condition, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
-interface CheckboxRule extends Rule {
+interface CheckboxCondition extends Condition {
     options: {
         values: string[]
     }
 }
 
-const data = defineModel<CheckboxRule>();
+const data = defineModel<CheckboxCondition>();
 const emit = defineEmits<{
     delete: [void]
     change: [void]
@@ -19,10 +19,10 @@ const emit = defineEmits<{
 
 
 <template>
-    <CustomCard v-if="data" :name="ruleInfoDict[data.type].name" @delete="emit('delete')">
+    <CustomCard v-if="data" :name="conditionInfoDict[data.type].name" @delete="emit('delete')">
         <div style="display: flex; flex-wrap: wrap; padding: 0 20px;">
             <el-checkbox-group v-model="data.options.values" :disabled="!canEdit" @change="emit('change')">
-                <el-checkbox v-for="(name, value) in ruleInfoDict[data.type].values" :key="value" :value="value"
+                <el-checkbox v-for="(name, value) in conditionInfoDict[data.type].values" :key="value" :value="value"
                     :label="name"></el-checkbox>
             </el-checkbox-group>
         </div>

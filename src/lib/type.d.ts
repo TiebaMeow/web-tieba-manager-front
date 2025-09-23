@@ -52,5 +52,5 @@ declare interface Comment extends Content {
 
 declare interface UserPermission {
     can_edit_forum: boolean,
-    can_edit_rule_set: boolean
+    can_edit_rule: boolean
 }

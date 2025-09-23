@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { MAIN_VIEW } from '@/lib/constance';
-import { ruleInfoDict, type Rule, canEdit } from '@/lib/data/rule';
+import { conditionInfoDict, type Condition, canEdit } from '@/lib/data/rule';
 import CustomCard from '../../components/CustomCard.vue';
 
-interface LimiterRule extends Rule {
+interface TimeCondition extends Condition {
     options: {
         start?: string
         end?: string
     }
 }
 
-const data = defineModel<LimiterRule>();
+const data = defineModel<TimeCondition>();
 const emit = defineEmits<{
     delete: [void],
     change: [void]
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 
 
 <template>
-    <CustomCard v-if="data" :name="ruleInfoDict[data.type].name" @delete="emit('delete')">
+    <CustomCard v-if="data" :name="conditionInfoDict[data.type].name" @delete="emit('delete')">
         <div style="display: flex; flex-wrap: wrap;">
             <div class="bar" :class="{ [MAIN_VIEW]: true }">
                 <p>

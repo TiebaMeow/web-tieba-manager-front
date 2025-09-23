@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
-import { getRuleSets, setRuleSets, canEdit } from '@/lib/data/rule';
+import { getRules, setRules, canEdit } from '@/lib/data/rule';
 import router from '@/router';
 import { getViewMode } from '@/lib/utils';
 import message from '@/lib/message';
 import { OPERATION_OPTIONS } from '@/lib/data/operation';
 
 const viewMode = getViewMode(600)
-const ruleSets = getRuleSets()
+const rules = getRules()
 const edited = ref(false)
 
 onBeforeRouteLeave((to, from, next) => {
@@ -25,15 +25,15 @@ onBeforeRouteLeave((to, from, next) => {
 })
 
 
-function editRuleSet(index: number) {
-    router.push(`/rule-sets/${index + 1}`)
+function editRule(index: number) {
+    router.push(`/rules/${index + 1}`)
 }
 
-function deleteRuleSet(index: number) {
-    if (ruleSets.value && index < ruleSets.value.length) {
-        message.confirm(`即将删除规则 ${ruleSets.value[index].name}`, '提示', () => {
-            if (ruleSets.value) {
-                ruleSets.value.splice(index, 1);
+function deleteRule(index: number) {
+    if (rules.value && index < rules.value.length) {
+        message.confirm(`即将删除规则 ${rules.value[index].name}`, '提示', () => {
+            if (rules.value) {
+                rules.value.splice(index, 1);
                 edited.value = true
             }
         });
@@ -44,43 +44,43 @@ function deleteRuleSet(index: number) {
 
 
 
-function emptyRuleSet() {
+function emptyRule() {
     message.confirm(`即将清空所有${whitelistMode.value ? '信任' : '违规'}规则`, '提示', () => {
-        if (ruleSets.value) {
+        if (rules.value) {
             edited.value = true;
-            ruleSets.value = ruleSets.value.filter((ruleSet => ruleSet.whitelist !== whitelistMode.value));
+            rules.value = rules.value.filter((rule => rule.whitelist !== whitelistMode.value));
         }
     });
 }
 
-function addRuleSet() {
-    if (ruleSets.value) {
-        router.push(`/${whitelistMode.value ? 'whitelist-' : ''}rule-sets/new`)
+function addRule() {
+    if (rules.value) {
+        router.push(`/${whitelistMode.value ? 'whitelist-' : ''}rules/new`)
     }
 }
 
 function save() {
-    setRuleSets()
+    setRules()
     edited.value = false
 }
 
 const whitelistMode = computed(() => {
-    return useRoute().name === 'whitelistRuleSets'
+    return useRoute().name === 'whitelistRules'
 })
-const currRuleSetLength = computed(() => {
-    return ruleSets.value ? ruleSets.value.filter(ruleSet => ruleSet.whitelist === whitelistMode.value).length : 0
+const currRuleLength = computed(() => {
+    return rules.value ? rules.value.filter(rule => rule.whitelist === whitelistMode.value).length : 0
 })
 
-function moveUpRuleSet(index: number) {
-    if (index > 0 && ruleSets.value) {
+function moveUpRule(index: number) {
+    if (index > 0 && rules.value) {
         edited.value = true
-        const temp = ruleSets.value[index];
-        ruleSets.value[index] = ruleSets.value[index - 1];
-        ruleSets.value[index - 1] = temp;
-        ruleSets.value[index].last_modify = Math.floor(Date.now() / 1000);
-        ruleSets.value[index - 1].last_modify = Math.floor(Date.now() / 1000);
-        if (ruleSets.value[index].whitelist !== ruleSets.value[index - 1].whitelist) {
-            moveUpRuleSet(index - 1); // 递归调用，确保相邻规则的顺序一致
+        const temp = rules.value[index];
+        rules.value[index] = rules.value[index - 1];
+        rules.value[index - 1] = temp;
+        rules.value[index].last_modify = Math.floor(Date.now() / 1000);
+        rules.value[index - 1].last_modify = Math.floor(Date.now() / 1000);
+        if (rules.value[index].whitelist !== rules.value[index - 1].whitelist) {
+            moveUpRule(index - 1); // 递归调用，确保相邻规则的顺序一致
         }
     }
 }
@@ -89,74 +89,74 @@ function moveUpRuleSet(index: number) {
 </script>
 
 <template>
-    <div v-if="ruleSets" style="max-width: 1000px; flex-grow: 1;">
+    <div v-if="rules" style="max-width: 1000px; flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;">
             <h2>{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
             <template v-if="canEdit">
-                <el-button type="danger" @click="emptyRuleSet">清空规则</el-button>
-                <el-button type="primary" @click="addRuleSet">添加规则</el-button>
+                <el-button type="danger" @click="emptyRule">清空规则</el-button>
+                <el-button type="primary" @click="addRule">添加规则</el-button>
                 <el-button type="success" @click="save">保存</el-button>
             </template>
             <el-divider style="margin-bottom: 20px;"></el-divider>
-            <template v-if="currRuleSetLength">
-                <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(ruleSet, index) in ruleSets"
-                    v-show="ruleSet.whitelist === whitelistMode" :key="index">
+            <template v-if="currRuleLength">
+                <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(rules, index) in rules"
+                    v-show="rules.whitelist === whitelistMode" :key="index">
                     <el-card style="flex-grow: 1;">
                         <template #header>
-                            # {{ ruleSet.name }}
+                            # {{ rules.name }}
                         </template>
                         <div style="display: flex;" v-if="viewMode === 'desktop'">
                             <div style="width: 110px;">
-                                <el-statistic :value="ruleSet.rules.length">
+                                <el-statistic :value="rules.conditions.length">
                                     <template #title>
-                                        规则数
+                                        条件数
                                     </template>
                                 </el-statistic>
                             </div>
                             <div style="width: 110px;" v-show="!whitelistMode">
                                 <custom-statistic title="操作"
-                                    :value="Array.isArray(ruleSet.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[ruleSet.operations]" />
+                                    :value="Array.isArray(rules.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rules.operations]" />
                             </div>
                             <div style="width: 110px;" v-show="!whitelistMode">
-                                <custom-statistic title="手动确认" :value="ruleSet.manual_confirm ? '是' : '否'" />
+                                <custom-statistic title="手动确认" :value="rules.manual_confirm ? '是' : '否'" />
                             </div>
                             <div style="flex-grow: 1; display: flex; justify-content: flex-end; align-items: flex-end;">
                                 <template v-if="canEdit">
-                                    <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
-                                    <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
-                                    <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                    <el-button type="primary" @click="moveUpRule(index)">上移</el-button>
+                                    <el-button type="primary" @click="editRule(index)">编辑</el-button>
+                                    <el-button type="danger" @click="deleteRule(index)">删除</el-button>
                                 </template>
                                 <template v-else>
-                                    <el-button type="primary" @click="editRuleSet(index)">查看</el-button>
+                                    <el-button type="primary" @click="editRule(index)">查看</el-button>
                                 </template>
                             </div>
                         </div>
                         <div v-else>
                             <div style="width: 100%; display: flex; margin-bottom: 20px;">
                                 <div style="width: 33%;">
-                                    <el-statistic :value="ruleSet.rules.length">
+                                    <el-statistic :value="rules.conditions.length">
                                         <template #title>
-                                            规则数
+                                            条件数
                                         </template>
                                     </el-statistic>
                                 </div>
                                 <div style="width: 33%" v-show="!whitelistMode">
                                     <custom-statistic title="操作"
-                                        :value="Array.isArray(ruleSet.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[ruleSet.operations]" />
+                                        :value="Array.isArray(rules.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rules.operations]" />
                                 </div>
                                 <div style="width: 33%" v-show="!whitelistMode">
-                                    <custom-statistic title="手动确认" :value="ruleSet.manual_confirm ? '是' : '否'" />
+                                    <custom-statistic title="手动确认" :value="rules.manual_confirm ? '是' : '否'" />
                                 </div>
 
                             </div>
                             <div style="flex-grow: 1; display: flex; align-items: flex-end;">
                                 <template v-if="canEdit">
-                                    <el-button type="primary" @click="moveUpRuleSet(index)">上移</el-button>
-                                    <el-button type="primary" @click="editRuleSet(index)">编辑</el-button>
-                                    <el-button type="danger" @click="deleteRuleSet(index)">删除</el-button>
+                                    <el-button type="primary" @click="moveUpRule(index)">上移</el-button>
+                                    <el-button type="primary" @click="editRule(index)">编辑</el-button>
+                                    <el-button type="danger" @click="deleteRule(index)">删除</el-button>
                                 </template>
                                 <template v-else>
-                                    <el-button type="primary" @click="editRuleSet(index)">查看</el-button>
+                                    <el-button type="primary" @click="editRule(index)">查看</el-button>
                                 </template>
                             </div>
                         </div>
@@ -169,7 +169,7 @@ function moveUpRuleSet(index: number) {
             </div>
         </div>
     </div>
-    <div v-else-if="ruleSets === null" v-loading="true">
+    <div v-else-if="rules === null" v-loading="true">
         加载中...
     </div>
     <div v-else>

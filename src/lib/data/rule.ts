@@ -7,7 +7,7 @@ import { currTokenData, SwitchTokenEvent } from './tokenManager'
 import router from '@/router'
 
 
-interface RuleInfo {
+interface ConditionInfo {
     type: string
     name: string
     category: string
@@ -16,104 +16,104 @@ interface RuleInfo {
     values: Record<string, string> | null
 }
 
-const ruleInfoList = ref<RefResponse<RuleInfo[]>>(undefined)
-async function getRuleInfoList() {
-    if (!ruleInfoList.value) {
-        await TokenRequest.fetch(ruleInfoList, {
+const conditionInfoList = ref<RefResponse<ConditionInfo[]>>(undefined)
+async function getConditionInfoList() {
+    if (!conditionInfoList.value) {
+        await TokenRequest.fetch(conditionInfoList, {
             url: '/api/rule/info'
         })
     }
 }
-const ruleInfoDict = computed(() => {
-    const dict: Record<string, RuleInfo> = {}
-    if (ruleInfoList.value) {
-        ruleInfoList.value.forEach(ruleInfo => {
-            dict[ruleInfo.type] = ruleInfo
+const conditionInfoDict = computed(() => {
+    const dict: Record<string, ConditionInfo> = {}
+    if (conditionInfoList.value) {
+        conditionInfoList.value.forEach(conditionInfo => {
+            dict[conditionInfo.type] = conditionInfo
         })
     }
     return dict
 })
-const ruleCategories = computed(() => {
+const conditionCategories = computed(() => {
     const categories: string[] = []
-    if (ruleInfoList.value) {
-        ruleInfoList.value.forEach((ruleInfo) => {
-            if (categories.indexOf(ruleInfo.category) === -1) {
-                categories.push(ruleInfo.category)
+    if (conditionInfoList.value) {
+        conditionInfoList.value.forEach((conditionInfo) => {
+            if (categories.indexOf(conditionInfo.category) === -1) {
+                categories.push(conditionInfo.category)
             }
         })
     }
     return categories
 })
-const categorizedRuleType = computed(() => {
+const categorizedConditionType = computed(() => {
     const data: Record<string, string[]> = {}
-    if (ruleInfoList.value) {
-        ruleInfoList.value.forEach(ruleInfo => {
-            if (!Object.prototype.hasOwnProperty.call(data, ruleInfo.category)) {
-                data[ruleInfo.category] = []
+    if (conditionInfoList.value) {
+        conditionInfoList.value.forEach(conditionInfo => {
+            if (!Object.prototype.hasOwnProperty.call(data, conditionInfo.category)) {
+                data[conditionInfo.category] = []
             }
-            if (data[ruleInfo.category].indexOf(ruleInfo.type) === -1) {
-                data[ruleInfo.category].push(ruleInfo.type)
+            if (data[conditionInfo.category].indexOf(conditionInfo.type) === -1) {
+                data[conditionInfo.category].push(conditionInfo.type)
             }
         })
     }
     return data
 })
 
-interface Rule {
+interface Condition {
     type: string
     priority?: number
     options: object
 }
 
-interface RuleSet {
+interface Rule {
     name: string
     manual_confirm: boolean
     last_modify: number
     whitelist: boolean
     operations: OperationGroup
-    rules: Rule[]
+    conditions: Condition[]
 }
 
 
-const ruleSets = ref<RefResponse<RuleSet[]>>(undefined)
+const rules = ref<RefResponse<Rule[]>>(undefined)
 
 export const canEdit = computed(() => {
     if (!currTokenData.value) {
         return false
     }
-    return currTokenData.value.permission?.can_edit_rule_set || currTokenData.value.system_access
+    return currTokenData.value.permission?.can_edit_rule || currTokenData.value.system_access
 })
 
-function getRuleSets() {
-    getRuleInfoList()
-    if (!ruleSets.value) {
-        TokenRequest.fetch(ruleSets, {
+function getRules() {
+    getConditionInfoList()
+    if (!rules.value) {
+        TokenRequest.fetch(rules, {
             url: '/api/rule/get'
         })
     }
-    return ruleSets
+    return rules
 }
 
-async function fetchRuleSets() {
-    await getRuleInfoList()
-    if (!ruleSets.value) {
-        await TokenRequest.fetch(ruleSets, {
+async function fetchRules() {
+    await getConditionInfoList()
+    if (!rules.value) {
+        await TokenRequest.fetch(rules, {
             url: '/api/rule/get'
         })
     }
-    return ruleSets
+    return rules
 }
 
-async function setRuleSets() {
+async function setRules() {
     if (!canEdit.value) {
         message.notify('没有权限修改规则', message.error)
         return
     }
-    if (ruleSets.value) {
+    if (rules.value) {
         try {
             const response = await TokenRequest.post<BaseResponse<boolean>>({
                 url: '/api/rule/set',
-                data: ruleSets.value
+                data: rules.value
             })
             if (response.data.code === 200) {
                 message.notify('规则保存成功', message.success)
@@ -131,31 +131,31 @@ async function setRuleSets() {
 }
 
 SwitchTokenEvent.on((token) => {
-    if (token && router.currentRoute.value.path.includes('rule-sets')) {
-        TokenRequest.fetch(ruleInfoList, {
+    if (token && router.currentRoute.value.path.includes('rules')) {
+        TokenRequest.fetch(conditionInfoList, {
             url: '/api/rule/info'
         })
-        TokenRequest.fetch(ruleSets, {
+        TokenRequest.fetch(rules, {
             url: '/api/rule/get'
         })
         // TODO 后续优化为不跳转
         router.push('/rule-sets')
     } else {
-        ruleSets.value = undefined
-        ruleInfoList.value = undefined
+        rules.value = undefined
+        conditionInfoList.value = undefined
     }
 })
 
 export {
-    ruleSets,
-    ruleInfoDict,
-    getRuleSets,
-    fetchRuleSets,
-    setRuleSets,
-    ruleCategories,
-    categorizedRuleType
+    rules,
+    conditionInfoDict,
+    getRules,
+    fetchRules,
+    setRules,
+    conditionCategories,
+    categorizedConditionType
 }
 export type {
-    Rule,
-    RuleSet
+    Condition,
+    Rule
 }
