@@ -139,7 +139,7 @@ SwitchTokenEvent.on((token) => {
             url: '/api/rule/get'
         })
         // TODO 后续优化为不跳转
-        router.push('/rule-sets')
+        router.push('/rules')
     } else {
         rules.value = undefined
         conditionInfoList.value = undefined
