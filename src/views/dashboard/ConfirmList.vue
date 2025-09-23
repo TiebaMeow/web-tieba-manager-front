@@ -86,7 +86,7 @@ function toggleSelect(content: Content) {
     confirmSelectedCount.value += selected ? -1 : 1;
 }
 
-// vue computed 表示用户是否有选中内容 boolen
+// vue computed 表示用户是否有选中内容 boolean
 const ifSelected = computed(() => {
     return confirmSelectedCount.value > 0
 
