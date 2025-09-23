@@ -10,6 +10,10 @@ import LogCard from './LogCard.vue';
 
 // TODO 切换日志文件时，在小屏幕设备上，会导致意外的内容增宽 (?)
 
+
+// 检测实时日志是否位于底部的管容量，以决定是否自动滚动到底部
+const SCROLL_TOLERANCE = 50
+
 const route = useRoute();
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL'
@@ -231,8 +235,8 @@ const RealtimeLog = new class RealtimeLog {
 
                     if (scrollbarRef.value && innerRef.value && scrollbarRef.value.wrapRef) {
                         const { scrollTop, clientHeight } = scrollbarRef.value.wrapRef
-                        // 极限值为 +110px 允许50px误差
-                        const isAtBottom = scrollTop + clientHeight >= innerRef.value.scrollHeight + 60
+                        // 极限值为 +110px
+                        const isAtBottom = scrollTop + clientHeight >= innerRef.value.scrollHeight + 110 - SCROLL_TOLERANCE
 
                         // 如果当前在底部，则自动滚动到底部
                         if (logMode.value === 'realtime' && isAtBottom) {
