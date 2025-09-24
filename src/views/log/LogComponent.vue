@@ -59,6 +59,10 @@ const currLog = ref('')
 
 const loadingList = ref(false)
 const loadingLog = ref(false)
+const loadingRealtime = ref(false)
+
+const loading = computed(() => (loadingList.value || loadingLog.value) && logMode.value === 'history'
+    || (loadingRealtime.value && logMode.value === 'realtime'))
 
 const innerRef = ref<HTMLElement | null>(null)
 const scrollbarRef = ref<ScrollbarInstance | null>(null)
@@ -191,7 +195,9 @@ const RealtimeLog = new class RealtimeLog {
             this.closeOldConnection()
             const token = getData<string>('access_token')
             if (token) {
-                this.start(token)
+                if (logMode.value === 'realtime') {
+                    this.start(token)
+                }
             }
         })
     }
@@ -203,14 +209,16 @@ const RealtimeLog = new class RealtimeLog {
         }
     }
 
-    start(token: string) {
+    async start(token: string) {
         if (this.shouldStop) {
             // 组件已卸载，停止继续链接
             return
         }
+        loadingRealtime.value = true
         const url = `${TokenRequest.host}${apiUrl.value}realtime?token=${encodeURIComponent(token)}`
         const eventSource = new EventSource(url)
         realtimeLogData.value = []
+        loadingRealtime.value = false
 
         eventSource.onmessage = (event) => {
             try {
@@ -327,7 +335,7 @@ const filteredLogData = computed<StructuredLog[] | false>(() => {
 </script>
 
 <template>
-    <div style="flex-grow: 1" v-loading="loadingList">
+    <div style="flex-grow: 1" v-loading="loading">
         <h2>{{ system ? "系统" : '' }}日志</h2>
         <div style="display: flex; align-items: center; flex-wrap: wrap;">
             <el-select v-model="selectedLevels" multiple placeholder="选择日志级别" style="width: 220px; margin-right: 10px;">
@@ -351,24 +359,32 @@ const filteredLogData = computed<StructuredLog[] | false>(() => {
             </el-input>
         </div>
         <el-divider style="margin-bottom: 0;" />
-        <div class="log-container" v-loading="loadingLog">
-            <el-scrollbar ref="scrollbarRef" v-if="hasValidLogData">
-                <template v-if="filteredLogData && filteredLogData.length > 0">
-                    <div ref="innerRef" style="margin: 10px;">
-                        <LogCard v-for="(log, index) in filteredLogData" :key="index" :log="log" :isSystem="system" />
+        <div class="log-container" v-loading="loadingLog && logMode === 'history'">
+            <el-scrollbar ref="scrollbarRef">
+                <template v-if="hasValidLogData">
+                    <template v-if="filteredLogData && filteredLogData.length > 0">
+                        <div ref="innerRef" style="margin: 10px;">
+                            <LogCard v-for="(log, index) in filteredLogData" :key="index" :log="log"
+                                :isSystem="system" />
+                        </div>
+                        <div style="margin-bottom: 100px;"></div>
+                    </template>
+                    <div class="center" v-else-if="loadingLog || loadingList || loadingRealtime"
+                        style="margin-top: 100px;" v-loding="loading">
+                        <h2>加载中...</h2>
                     </div>
-                    <div style="margin-bottom: 100px;"></div>
+                    <div class="center" v-else style="margin-top: 100px;">
+                        <h2>当前筛选无日志</h2>
+                    </div>
                 </template>
-                <div class="center" v-else-if="loadingLog || loadingList" style="margin-top: 100px;">
+                <div class="center" v-else-if="loadingLog || loadingList || loadingRealtime" style="margin-top: 100px;"
+                    v-loding="loading">
                     <h2>加载中...</h2>
                 </div>
-                <div class="center" v-else style="margin-top: 100px;">
-                    <h2>当前筛选无日志</h2>
+                <div v-else class="center" style="margin-top: 100px;">
+                    <h2>日志加载失败</h2>
                 </div>
             </el-scrollbar>
-            <div v-else class="center" style="margin-top: 100px;">
-                <h2>日志加载失败</h2>
-            </div>
         </div>
     </div>
 </template>
