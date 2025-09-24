@@ -241,10 +241,10 @@ const selectedRuleName = ref<string[]>([])
         <el-progress v-if="AutoRefresh.enable.value && confirmList" :percentage="AutoRefresh.percentage.value"
             :show-text="false" />
     </div>
-    <div style="max-width: 1000px; position: relative;;flex-grow: 1;">
+    <div style="max-width: 1000px; position: relative;flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;" v-if="confirmList && confirmList.length > 0">
-            <h1>确认列表</h1>
-            <div>
+            <h1 style="margin-bottom: 5px;">确认列表</h1>
+            <div class="sticky-bar">
                 <el-button type="primary" v-if="!ifSelected" @click="ifShowBatchDialog = true">批量操作</el-button>
                 <el-button type="primary" v-else @click="clearConfirmSelected">取消选择</el-button>
                 <el-button type="success" @click="confirmSelected('ignore')"> {{ ifSelected ? '忽略选中' : '忽略所有' }}
@@ -252,7 +252,7 @@ const selectedRuleName = ref<string[]>([])
                 <el-button type="danger" @click="confirmSelected('execute')"> {{ ifSelected ? '确认选中' : '确认所有' }}
                 </el-button>
             </div>
-            <el-divider />
+            <!-- <el-divider /> -->
             <div v-for="({ content, rule_name }, index) in confirmList" style="margin-bottom: 20px;"
                 :key="content.pid">
                 <!-- 点击整张卡片切换选中 -->

@@ -163,15 +163,18 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     </el-select>
                 </el-form-item>
             </el-form>
-            <div class="config-bar" v-show="!ruleDataCopy.whitelist">
+            <div class="config-bar" v-show="!ruleDataCopy.whitelist" style="margin-bottom: 0;">
                 <el-checkbox v-model="ruleDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit"
                     @change="edited = true" />
             </div>
-            <div style="display: flex;  align-items: flex-end;">
+            <div class="sticky-bar" style="padding-top: 20px; margin-bottom: 20px;" :style="{
+                borderBottom: ruleDataCopy.operations == 'custom' ? 'none' : '1px solid var(--bolder-color)',
+                paddingBottom: ruleDataCopy.operations == 'custom' ? '0' : '15px'
+            }">
                 <template v-if="canEdit">
                     <el-button type="danger" @click="deleteAll">清空</el-button>
                     <!-- <el-button type="primary" @click="addItem">添加</el-button> -->
-                     <!-- TODO 添加后下拉底部， -->
+                    <!-- TODO 添加后下拉底部， -->
                     <el-button type="primary"
                         @click="router.push(ruleDataCopy.whitelist ? '/whitelist-rules' : '/rules')">返回</el-button>
                     <el-button type="success" @click="saveRule">保存</el-button>
@@ -180,15 +183,16 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <el-button type="primary"
                         @click="router.push(ruleDataCopy.whitelist ? '/whitelist-rules' : '/rules')">返回</el-button>
                 </template>
+                <el-tabs v-if="ruleDataCopy.operations == 'custom'" v-model="activeEdit" stretch
+                    style="margin-top: 5px; width: calc(100% + 40px); position: relative; left: -20px;">
+                    <el-tab-pane label="条件" name="condition"></el-tab-pane>
+                    <el-tab-pane label="操作" name="operation"></el-tab-pane>
+                </el-tabs>
             </div>
-            <el-tabs v-if="ruleDataCopy.operations == 'custom'" v-model="activeEdit" stretch style="margin: 20px 0;">
-                <el-tab-pane label="条件" name="condition"></el-tab-pane>
-                <el-tab-pane label="操作" name="operation"></el-tab-pane>
-            </el-tabs>
-            <el-divider v-else></el-divider>
             <template v-if="activeEdit === 'condition'">
                 <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
-                    <component :is="CONDITION_COMPONENTS[conditionInfoDict[condition.type].series as keyof typeof CONDITION_COMPONENTS]"
+                    <component
+                        :is="CONDITION_COMPONENTS[conditionInfoDict[condition.type].series as keyof typeof CONDITION_COMPONENTS]"
                         @change="edited = true" v-model="ruleDataCopy.conditions[seq]"
                         @delete="ruleDataCopy.conditions.splice(seq, 1)" />
                 </template>
@@ -305,5 +309,13 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
 
 .add-slot h3 {
     margin: 0 0 20px 0
+}
+</style>
+
+
+
+<style>
+.sticky-bar>div>div.el-tabs__header.is-top {
+    margin-bottom: 0;
 }
 </style>

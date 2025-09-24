@@ -91,13 +91,13 @@ function moveUpRule(index: number) {
 <template>
     <div v-if="rules" style="max-width: 1000px; flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;">
-            <h2>{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
-            <template v-if="canEdit">
-                <el-button type="danger" @click="emptyRule">清空规则</el-button>
-                <el-button type="primary" @click="addRule">添加规则</el-button>
-                <el-button type="success" @click="save">保存</el-button>
-            </template>
-            <el-divider style="margin-bottom: 20px;"></el-divider>
+            <h2 style="margin-bottom: 5px;">{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
+            <div v-if="canEdit" class="sticky-bar">
+                    <el-button type="danger" @click="emptyRule">清空规则</el-button>
+                    <el-button type="primary" @click="addRule">添加规则</el-button>
+                    <el-button type="success" @click="save">保存</el-button>
+            </div>
+            <el-divider v-else style="margin-bottom: 20px;"></el-divider>
             <template v-if="currRuleLength">
                 <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(rules, index) in rules"
                     v-show="rules.whitelist === whitelistMode" :key="index">

@@ -157,6 +157,21 @@ body.el-popup-parent--hidden {
     align-items: center;
     text-align: center;
 }
+
+.sticky-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    background-color: #fff;
+    border-bottom: 1px solid var(--bolder-color);
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    margin-right: -20px;
+    left: 0;
+    box-sizing: border-box;
+}
 </style>
 <style scoped>
 .header {
