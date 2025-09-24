@@ -200,7 +200,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <div v-if="addRule" class="center add-slot">
                         <h3>( Φ ω Φ )</h3>
                         <div style="display: flex; width: 100%;">
-                            <el-button type="plain" style="margin-right: 10px;" @click="() => {
+                            <el-button style="margin-right: 10px;" @click="() => {
                                 addRule = false
                                 addRuleOption = {};
                             }">取消</el-button>
@@ -234,7 +234,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <div v-else class="center add-slot">
                         <h3>/ᐠ｡ꞈ｡ᐟ\</h3>
                         <div style="width: 100%; text-align: center">
-                            <el-button @click="addRule = true" type="plain">点我添加条件</el-button>
+                            <el-button @click="addRule = true">点我添加条件</el-button>
                         </div>
                     </div>
                 </el-card>
@@ -248,7 +248,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <div v-if="addOperation" class="center add-slot">
                         <h3> ( Φ ω Φ ) </h3>
                         <div style="display: flex; width: 100%;">
-                            <el-button type="plain" style="margin-right: 10px;" @click="() => {
+                            <el-button style="margin-right: 10px;" @click="() => {
                                 addOperation = false
                                 addOperationOption = undefined
                             }">取消</el-button>
