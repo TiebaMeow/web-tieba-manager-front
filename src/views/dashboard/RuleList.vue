@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { onBeforeRouteLeave, useRoute } from 'vue-router';
-import { getRules, setRules, canEdit } from '@/lib/data/rule';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { getRules, setRules, canEdit, ruleEdited } from '@/lib/data/rule';
 import router from '@/router';
 import { getViewMode } from '@/lib/utils';
 import message from '@/lib/message';
@@ -9,21 +9,6 @@ import { OPERATION_OPTIONS } from '@/lib/data/operation';
 
 const viewMode = getViewMode(600)
 const rules = getRules()
-const edited = ref(false)
-
-onBeforeRouteLeave((to, from, next) => {
-    if (edited.value) {
-        message.confirm('设置未保存，确认离开？', '提示', () => {
-            edited.value = false
-            next()
-        }, () => {
-            next(false)
-        })
-    } else {
-        next()
-    }
-})
-
 
 function editRule(index: number) {
     router.push(`/rules/${index + 1}`)
@@ -34,7 +19,7 @@ function deleteRule(index: number) {
         message.confirm(`即将删除规则 ${rules.value[index].name}`, '提示', () => {
             if (rules.value) {
                 rules.value.splice(index, 1);
-                edited.value = true
+                ruleEdited.value = true
             }
         });
     } else {
@@ -47,7 +32,7 @@ function deleteRule(index: number) {
 function emptyRule() {
     message.confirm(`即将清空所有${whitelistMode.value ? '信任' : '违规'}规则`, '提示', () => {
         if (rules.value) {
-            edited.value = true;
+            ruleEdited.value = true;
             rules.value = rules.value.filter((rule => rule.whitelist !== whitelistMode.value));
         }
     });
@@ -61,7 +46,7 @@ function addRule() {
 
 function save() {
     setRules()
-    edited.value = false
+    ruleEdited.value = false
 }
 
 const whitelistMode = computed(() => {
@@ -73,7 +58,7 @@ const currRuleLength = computed(() => {
 
 function moveUpRule(index: number) {
     if (index > 0 && rules.value) {
-        edited.value = true
+        ruleEdited.value = true
         const temp = rules.value[index];
         rules.value[index] = rules.value[index - 1];
         rules.value[index - 1] = temp;
@@ -93,9 +78,9 @@ function moveUpRule(index: number) {
         <div style="max-width: 600px; padding: 10px;">
             <h2 style="margin-bottom: 5px;">{{ whitelistMode ? '信任' : '违规' }}规则设置</h2>
             <div v-if="canEdit" class="sticky-bar">
-                    <el-button type="danger" @click="emptyRule">清空规则</el-button>
-                    <el-button type="primary" @click="addRule">添加规则</el-button>
-                    <el-button type="success" @click="save">保存</el-button>
+                <el-button type="danger" @click="emptyRule">清空规则</el-button>
+                <el-button type="primary" @click="addRule">添加规则</el-button>
+                <el-button type="success" @click="save">保存</el-button>
             </div>
             <el-divider v-else style="margin-bottom: 20px;"></el-divider>
             <template v-if="currRuleLength">

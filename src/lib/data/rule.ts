@@ -7,6 +7,33 @@ import { currTokenData, SwitchTokenEvent } from './tokenManager'
 import router from '@/router'
 
 
+const ruleEdited = ref(false)
+
+function isRuleRoute(path: string) {
+    return path.includes('rules')
+}
+
+router.beforeEach((to, from, next) => {
+    // noToken 默认为 false
+    const toIs = isRuleRoute(to.path)
+    const fromIs = isRuleRoute(from.path)
+    if (toIs && !fromIs) {
+        // 进入规则页面
+        fetchRules(true)
+        next()
+    } else if (!toIs && fromIs && ruleEdited.value) {
+        // 离开规则页面且规则被修改
+        message.confirm('规则未保存，确认离开？', '提示', () => {
+            ruleEdited.value = false
+            next()
+        }, () => {
+            next(false)
+        })
+    } else {
+        next()
+    }
+})
+
 interface ConditionInfo {
     type: string
     name: string
@@ -94,9 +121,9 @@ function getRules() {
     return rules
 }
 
-async function fetchRules() {
+async function fetchRules(refresh = false) {
     await getConditionInfoList()
-    if (!rules.value) {
+    if (!rules.value || refresh) {
         await TokenRequest.fetch(rules, {
             url: '/api/rule/get'
         })
@@ -104,10 +131,10 @@ async function fetchRules() {
     return rules
 }
 
-async function setRules() {
+async function setRules(): Promise<boolean> {
     if (!canEdit.value) {
         message.notify('没有权限修改规则', message.error)
-        return
+        return false
     }
     if (rules.value) {
         try {
@@ -117,6 +144,8 @@ async function setRules() {
             })
             if (response.data.code === 200) {
                 message.notify('规则保存成功', message.success)
+                ruleEdited.value = false
+                return true
             } else {
                 message.notify('规则保存失败 ' + response.data.message, message.error)
             }
@@ -128,6 +157,7 @@ async function setRules() {
             }
         }
     }
+    return false
 }
 
 SwitchTokenEvent.on((token) => {
@@ -153,7 +183,8 @@ export {
     fetchRules,
     setRules,
     conditionCategories,
-    categorizedConditionType
+    categorizedConditionType,
+    ruleEdited
 }
 export type {
     Condition,

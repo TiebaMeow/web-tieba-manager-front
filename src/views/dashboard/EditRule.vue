@@ -2,54 +2,48 @@
 import { ref, computed } from 'vue';
 import {
     type Rule,
-    rules,
+    getRules,
     canEdit,
     fetchRules,
     setRules,
     conditionCategories,
     categorizedConditionType,
-    conditionInfoDict
+    conditionInfoDict,
+    ruleEdited
 } from '@/lib/data/rule';
 import router from '@/router';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, type RouteLocationNormalized } from 'vue-router';
 import { copy } from '@/lib/utils';
 import message from '@/lib/message';
 import CONDITION_COMPONENTS from '../conditionTemplate';
 import { CUSTOM_OPERATION_OPTIONS, OPERATION_OPTIONS, type Operation } from '@/lib/data/operation';
 import OPERATION_COMPONENTS from '../operationTemplate';
 
-function confirmLeave(next: (to?: string | boolean) => void) {
-    if (edited.value) {
-        message.confirm('设置未保存，确认离开？', '提示', () => {
-            next()
-        }, () => {
-            next(false)
-        })
-    } else {
-        next()
+
+const hasNewed = ref(false)
+async function doRouteChange(to: RouteLocationNormalized, from: RouteLocationNormalized) {
+    syncCopy2Rules()
+    hasNewed.value = false
+
+    if (to.params.id !== from.params.id) {
+        ruleSeq.value = parseInt(to.params.id as string)
+        if (!(ifNew.value && hasNewed.value)) {
+            await getRuleCopy()
+            customOperations.value = []
+            activeEdit.value = 'condition'
+        }
     }
 }
 
-onBeforeRouteLeave((to, from, next) => {
-    confirmLeave(next)
+onBeforeRouteLeave(async (to, from) => {
+    // 从 rules/new -> rules/1 这种路由跳转时，组件不会重新加载，但路由会调用onBeforeLeave
+    await doRouteChange(to, from)
+})
+onBeforeRouteUpdate(async (to, from) => {
+    await doRouteChange(to, from)
 })
 
-onBeforeRouteUpdate((to, from, next) => {
-    if (to.params.id !== from.params.id) {
-        confirmLeave(async (res) => {
-            if (res === false) {
-                next(false)
-                return
-            }
-            ruleSeq.value = parseInt(to.params.id as string)
-            await getRuleCopy()
-            edited.value = false
-            customOperations.value = []
-            activeEdit.value = 'condition'
-            next()
-        })
-    }
-})
+const rules = getRules()
 
 const ifNew = computed(() => {
     return ['newRule', 'newWhitelistRule'].indexOf(route.name as string) !== -1
@@ -66,7 +60,7 @@ function newRule(): boolean {
         last_modify: Math.floor(Date.now() / 1000),
         manual_confirm: false
     }
-    edited.value = true
+    ruleEdited.value = true
     return true
 }
 
@@ -75,15 +69,17 @@ const ruleSeq = ref(parseInt(route.params.id as string))
 const ruleDataCopy = ref<Rule | undefined>(undefined);
 const customOperations = ref<Operation[]>([])
 const activeEdit = ref<'condition' | 'operation'>('condition')
-const edited = ref(false)
 
 async function getRuleCopy() {
     const rulesValue = await fetchRules()
     if (newRule()) {
+        ruleEdited.value = true
         return
     }
     if (!rulesValue.value || !rulesValue.value[ruleSeq.value - 1]) {
-        router.push('/rules')
+        router.push({
+            path: '/rules',
+        })
         return
     }
     ruleDataCopy.value = copy(rulesValue.value[ruleSeq.value - 1])
@@ -98,12 +94,12 @@ function deleteAll() {
     if (activeEdit.value === 'condition') {
         message.confirm('即将删除所有条件', '提示', () => {
             ruleDataCopy.value!.conditions = [];
-            edited.value = true
+            ruleEdited.value = true
         });
     } else if (activeEdit.value === 'operation' && ruleDataCopy.value?.operations === 'custom') {
         message.confirm('即将删除所有操作', '提示', () => {
             customOperations.value = [];
-            edited.value = true
+            ruleEdited.value = true
         });
     } else {
         message.notify('当前操作不可用', message.warning)
@@ -111,6 +107,30 @@ function deleteAll() {
 }
 
 
+function syncCopy2Rules() {
+    if (!rules.value) {
+        message.notify('规则列表未加载，无法保存', message.error)
+        return
+    }
+    if (ifNew.value && hasNewed.value) {
+        // 当新建规则，点击保存，则会路由至此
+        return
+    }
+    if (ruleDataCopy.value) {
+        const rule = copy(ruleDataCopy.value)
+        if (rule.operations === 'custom') {
+            rule.operations = customOperations.value
+        }
+        rule.last_modify = Math.floor(Date.now() / 1000);
+        if (ifNew.value) {
+            rules.value.push(rule)
+        } else {
+            rules.value[ruleSeq.value - 1] = rule
+        }
+    } else {
+        message.notify('规则数据未加载，无法保存', message.error)
+    }
+}
 
 function saveRule() {
     if (!canEdit.value) {
@@ -118,18 +138,12 @@ function saveRule() {
         return
     }
     if (ruleDataCopy.value && rules.value) {
-        if (ruleDataCopy.value.operations === 'custom') {
-            ruleDataCopy.value.operations = customOperations.value
-        }
-        ruleDataCopy.value.last_modify = Math.floor(Date.now() / 1000);
-        if (ifNew.value) {
-            rules.value.push(ruleDataCopy.value)
-        } else {
-            rules.value[ruleSeq.value - 1] = ruleDataCopy.value;
-        }
+        syncCopy2Rules()
         setRules()
-        edited.value = false
-        router.push(ruleDataCopy.value.whitelist ? '/whitelist-rules' : '/rules');
+        if (ifNew.value) {
+            hasNewed.value = true // 无论是否保存成功，规则都已插入到rules中
+            router.push(`/rules/${(rules.value.length || 1)}`)
+        }
     } else {
         message.notify('数据加载失败，尝试刷新页面', message.error)
     }
@@ -150,12 +164,12 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             <h1>{{ canEdit ? '编辑' : '查看' }}规则</h1>
             <el-form label-width="auto">
                 <el-form-item label="规则名">
-                    <el-input v-model="ruleDataCopy.name" :disabled="!canEdit" @change="edited = true"></el-input>
+                    <el-input v-model="ruleDataCopy.name" :disabled="!canEdit" @change="ruleEdited = true"></el-input>
                 </el-form-item>
                 <el-form-item label="操作" v-show="!ruleDataCopy.whitelist">
                     <el-select v-model="ruleDataCopy.operations" placeholder="请选择操作" @change="() => {
                         customOperations = []
-                        edited = true
+                        ruleEdited = true
                         activeEdit = 'condition'
                     }" :disabled="!canEdit">
                         <el-option v-for="(name, operation) in OPERATION_OPTIONS" :key="operation" :label="name"
@@ -165,7 +179,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             </el-form>
             <div class="config-bar" v-show="!ruleDataCopy.whitelist" style="margin-bottom: 0;">
                 <el-checkbox v-model="ruleDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit"
-                    @change="edited = true" />
+                    @change="ruleEdited = true" />
             </div>
             <div class="sticky-bar" style="padding-top: 20px; margin-bottom: 20px;" :style="{
                 borderBottom: ruleDataCopy.operations == 'custom' ? 'none' : '1px solid var(--bolder-color)',
@@ -193,7 +207,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                 <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
                     <component
                         :is="CONDITION_COMPONENTS[conditionInfoDict[condition.type].series as keyof typeof CONDITION_COMPONENTS]"
-                        @change="edited = true" v-model="ruleDataCopy.conditions[seq]"
+                        @change="ruleEdited = true" v-model="ruleDataCopy.conditions[seq]"
                         @delete="ruleDataCopy.conditions.splice(seq, 1)" />
                 </template>
                 <el-card>
@@ -224,7 +238,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                                     })
                                     addRule = false
                                     addRuleOption = {};
-                                    edited = true
+                                    ruleEdited = true
                                 } else {
                                     message.notify('请先选择规则类型和子类型', message.warning)
                                 }
@@ -241,7 +255,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             </template>
             <template v-else>
                 <template v-for="(operation, seq) in customOperations" :key="seq">
-                    <component :is="OPERATION_COMPONENTS[operation.type]" @change="edited = true"
+                    <component :is="OPERATION_COMPONENTS[operation.type]" @change="ruleEdited = true"
                         v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
                 </template>
                 <el-card>
@@ -265,7 +279,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                                     })
                                     addOperation = false
                                     addOperationOption = undefined
-                                    edited = true
+                                    ruleEdited = true
                                 } else {
                                     message.notify('请选择操作', message.warning)
                                 }
