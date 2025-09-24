@@ -26,6 +26,7 @@ interface LogData {
     message: string
     level: LogLevel
     name: string
+    time: string
     extra: {
         tid?: number
         pid?: number
@@ -35,12 +36,7 @@ interface LogData {
 }
 
 
-interface StructuredLog {
-    time: string
-    name: string
-    level: LogLevel
-    message: string,
-    extra: LogData['extra']
+interface LogDataWithSeq extends LogData {
     seq?: number
 }
 
@@ -54,7 +50,7 @@ const LevelTag = {
 
 const logList = ref<string[]>([]);
 
-const currLogData = ref<StructuredLog[] | false>([]);
+const currLogData = ref<LogDataWithSeq[] | false>([]);
 const currLog = ref('')
 
 const loadingList = ref(false)
@@ -70,33 +66,7 @@ const scrollbarRef = ref<ScrollbarInstance | null>(null)
 const logMode = ref<'history' | 'realtime'>('realtime')
 // TODO 优化history模式下的日志加载性能
 
-const realtimeLogData = ref<StructuredLog[] | false>([])
-
-function parseLogLine(line: LogData, seq?: number): StructuredLog | null {
-    try {
-        const parts = line.message.split('|', 3)
-        if (parts.length < 3) {
-            throw new Error('日志格式不正确')
-        }
-        const timeParts = parts[0].split(' ')
-        if (timeParts.length < 3) {
-            throw new Error('时间格式不正确')
-        }
-        const message = parts[2].trim()
-        const time = timeParts[1]
-        return {
-            time,
-            name: line.name,
-            level: line.level,
-            message,
-            extra: line.extra,
-            seq
-        }
-    } catch (e) {
-        console.error('解析日志行失败', e)
-        return null
-    }
-}
+const realtimeLogData = ref<LogDataWithSeq[] | false>([])
 
 async function fetchLogList() {
     loadingList.value = true
@@ -132,7 +102,10 @@ async function fetchLog(file: string) {
         if (response.data.code === 200) {
             currLogData.value = []
             response.data.data.forEach((line, index) => {
-                const parsed = parseLogLine(line, index + 1)
+                const parsed = {
+                    ...line,
+                    seq: index + 1
+                }
                 if (parsed && currLogData.value) {
                     currLogData.value.push(parsed)
                 }
@@ -237,19 +210,16 @@ const RealtimeLog = new class RealtimeLog {
                     realtimeLogData.value = []
                     return
                 }
-                const parsed = parseLogLine(data)
-                if (parsed) {
-                    realtimeLogData.value.push(parsed)
+                realtimeLogData.value.push(data)
 
-                    if (scrollbarRef.value && innerRef.value && scrollbarRef.value.wrapRef) {
-                        const { scrollTop, clientHeight } = scrollbarRef.value.wrapRef
-                        // 极限值为 +110px
-                        const isAtBottom = scrollTop + clientHeight >= innerRef.value.scrollHeight + 110 - SCROLL_TOLERANCE
+                if (scrollbarRef.value && innerRef.value && scrollbarRef.value.wrapRef) {
+                    const { scrollTop, clientHeight } = scrollbarRef.value.wrapRef
+                    // 极限值为 +110px
+                    const isAtBottom = scrollTop + clientHeight >= innerRef.value.scrollHeight + 110 - SCROLL_TOLERANCE
 
-                        // 如果当前在底部，则自动滚动到底部
-                        if (logMode.value === 'realtime' && isAtBottom) {
-                            scrollToBottom()
-                        }
+                    // 如果当前在底部，则自动滚动到底部
+                    if (logMode.value === 'realtime' && isAtBottom) {
+                        scrollToBottom()
                     }
                 }
             } catch {
@@ -311,9 +281,9 @@ const hasValidLogData = computed(() => {
 
 const logSearch = ref('')
 
-const filteredLogData = computed<StructuredLog[] | false>(() => {
+const filteredLogData = computed<LogDataWithSeq[] | false>(() => {
     const levels = new Set(selectedLevels.value)
-    let logs: StructuredLog[] | false
+    let logs: LogDataWithSeq[] | false
     if (logMode.value === 'history') {
         logs = currLogData.value === false ? false : currLogData.value.filter(log => levels.has(log.level))
     } else {
