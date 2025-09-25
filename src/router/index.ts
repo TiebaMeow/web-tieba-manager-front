@@ -85,7 +85,7 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
     },
 ]
 
-export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
+export const systemDashboardRoutes: DashboardRouteRecordRaw[] = [
     {
         path: '/user-management',
         name: 'userManagement',
@@ -93,7 +93,7 @@ export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
             title: '用户管理',
             system: true
         },
-        component: () => import('../views/systemManagement/UserManagement.vue')
+        component: () => import('../views/systemDashboard/UserManagement.vue')
     },
     {
         path: '/system-log',
@@ -111,7 +111,7 @@ export const SystemManagementRoutes: DashboardRouteRecordRaw[] = [
             title: '系统设置',
             system: true
         },
-        component: () => import('../views/systemManagement/SystemConfig.vue')
+        component: () => import('../views/systemDashboard/SystemConfig.vue')
     },
 ]
 
@@ -143,7 +143,7 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/dashboard',
         name: 'dashboard',
-        children: [...DashboardRoutes, ...SystemManagementRoutes],
+        children: [...DashboardRoutes, ...systemDashboardRoutes],
         redirect: '/home',
     },
     // 捕获所有未定义路由，统一重定向到 /home
