@@ -2,7 +2,7 @@
 import { getData } from '@/lib/utils';
 import CollapseItem from '@/components/CollapseItem';
 import { useRoute, useRouter } from 'vue-router';
-import { DashboardRoutes, SystemManagementRoutes } from '@/router';
+import { DashboardRoutes, systemDashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';
 import { currTokenData } from '@/lib/data/tokenManager';
@@ -26,7 +26,7 @@ function goto(url: string) {
 }
 
 const visibleRoutes = DashboardRoutes.filter((value) => !value.meta.hide)
-const visibleSystemRoutes = SystemManagementRoutes.filter((value) => !value.meta.hide)
+const visibleSystemRoutes = systemDashboardRoutes.filter((value) => !value.meta.hide)
 
 </script>
 
