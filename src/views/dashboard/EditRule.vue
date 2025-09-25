@@ -23,16 +23,16 @@ import OPERATION_COMPONENTS from '../operationTemplate';
 const hasNewed = ref(false)
 async function doRouteChange(to: RouteLocationNormalized, from: RouteLocationNormalized) {
     syncCopy2Rules()
-    hasNewed.value = false
-
+    
     if (to.params.id !== from.params.id) {
         ruleSeq.value = parseInt(to.params.id as string)
+
         if (!(ifNew.value && hasNewed.value)) {
-            await getRuleCopy()
-            customOperations.value = []
+                        await getRuleCopy()
             activeEdit.value = 'condition'
         }
     }
+    hasNewed.value = false
 }
 
 onBeforeRouteLeave(async (to, from) => {
