@@ -9,10 +9,13 @@ import {
     conditionCategories,
     categorizedConditionType,
     conditionInfoDict,
-    ruleEdited
+    ruleEdited,
+    confirmLeaveRuleRoute,
+    isRuleRoute
+
 } from '@/lib/data/rule';
 import router from '@/router';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, type RouteLocationNormalized } from 'vue-router';
+import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { copy } from '@/lib/utils';
 import message from '@/lib/message';
 import CONDITION_COMPONENTS from '../conditionTemplate';
@@ -20,27 +23,35 @@ import { CUSTOM_OPERATION_OPTIONS, OPERATION_OPTIONS, type Operation } from '@/l
 import OPERATION_COMPONENTS from '../operationTemplate';
 
 
-const hasNewed = ref(false)
-async function doRouteChange(to: RouteLocationNormalized, from: RouteLocationNormalized) {
+async function refreshRule() {
     syncCopy2Rules()
-
-    if (to.params.id !== from.params.id) {
-        ruleSeq.value = parseInt(to.params.id as string)
-
-        if (!(ifNew.value && hasNewed.value)) {
-            await getRuleCopy()
-            activeEdit.value = 'condition'
-        }
-    }
+    ruleSeq.value = parseInt(route.params.id as string)
+    await getRuleCopy()
+    activeEdit.value = 'condition'
     hasNewed.value = false
 }
 
 onBeforeRouteLeave(async (to, from) => {
-    // 从 rules/new -> rules/1 这种路由跳转时，组件不会重新加载，但路由会调用onBeforeLeave
-    await doRouteChange(to, from)
+    if (from.path.endsWith('new')) {
+        if (!isRuleRoute(to.path)) {
+            // 从 new -> 非规则页面，则不做任何操作
+            return await confirmLeaveRuleRoute()
+        }
+        if (hasNewed.value) {
+            // 从 new -> rules/xx，且已经new过了，则刷新ruleSeq
+            ruleSeq.value = parseInt(to.params.id as string)
+        } else {
+            // 从 new -> rules/xx，且没有new过，则刷新规则
+            hasNewed.value = true
+            await refreshRule()
+        }
+        return
+    }
+    await refreshRule()
+    // 其余交由rule.ts路由守卫处理
 })
-onBeforeRouteUpdate(async (to, from) => {
-    await doRouteChange(to, from)
+onBeforeRouteUpdate(async () => {
+    await refreshRule();
 })
 
 const rules = getRules()
@@ -48,6 +59,8 @@ const rules = getRules()
 const ifNew = computed(() => {
     return ['newRule', 'newWhitelistRule'].indexOf(route.name as string) !== -1
 })
+const hasNewed = ref(false) // 防止重复new
+
 function newRule(): boolean {
     if (!ifNew.value) {
         return false
@@ -112,10 +125,6 @@ function syncCopy2Rules() {
         message.notify('规则列表未加载，无法保存', message.error)
         return
     }
-    if (ifNew.value && hasNewed.value) {
-        // 当新建规则，点击保存，则会路由至此
-        return
-    }
     if (ruleDataCopy.value) {
         const rule = copy(ruleDataCopy.value)
         if (rule.operations === 'custom') {
@@ -132,16 +141,16 @@ function syncCopy2Rules() {
     }
 }
 
-function saveRule() {
+async function saveRule() {
     if (!canEdit.value) {
         message.notify('没有权限修改规则', message.error)
         return
     }
     if (ruleDataCopy.value && rules.value) {
         syncCopy2Rules()
-        setRules()
+        await setRules()
         if (ifNew.value) {
-            hasNewed.value = true // 无论是否保存成功，规则都已插入到rules中
+            hasNewed.value = true
             router.push(`/rules/${(rules.value.length || 1)}`)
         }
     } else {
