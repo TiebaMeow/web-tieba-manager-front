@@ -35,13 +35,13 @@ function changeUserState() {
 
         <div style="display: flex; margin-bottom: 30px;">
             <div style="width: 140px;">
-                <custom-statistic title="运行状态" :value="homeInfo.enable ? '正在运行' : '未运行'" />
+                <custom-statistic title="运行状态" :value="homeInfo.enable ? '启用' : '禁用'" />
             </div>
             <div style="position: relative;">
 
                 <el-button style="position: absolute; bottom: 0;" :type="homeInfo.enable ? 'danger' : 'success'"
                     @click="changeUserState"> {{
-                        homeInfo.enable ? '停止' : '启动' }}</el-button>
+                        homeInfo.enable ? '禁用' : '启用' }}</el-button>
             </div>
         </div>
         <h2>账号信息</h2>
