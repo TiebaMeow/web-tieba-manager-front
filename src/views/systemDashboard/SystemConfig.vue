@@ -21,7 +21,7 @@ const formRules = reactive<FormRules>({
     ],
     'database.path': [
         { required: true, message: '请输入数据库文件路径', trigger: 'blur' },
-        { pattern: /^[^<>:"|?*]+$/, message: '路径不能包含非法字符', trigger: 'blur' }
+        { pattern: /^[a-zA-Z]:\\[^<>:"|?*]+$|^[^<>:"|?*]+$/, message: '路径不能包含非法字符', trigger: 'blur' }
     ],
     'database.host': FORM_RULES.hostname,
     'database.port': FORM_RULES.port,
