@@ -135,6 +135,11 @@ watch(currLog, (newLog) => {
 watch(logMode, (newMode) => {
     if (newMode === 'history') {
         fetchLogList()
+    } else {
+        const token = getData<string>('access_token')
+        if (!RealtimeLog.eventSource && token) {
+            RealtimeLog.start(token)
+        }
     }
     scrollToBottom()
 })
@@ -230,10 +235,9 @@ const RealtimeLog = new class RealtimeLog {
         eventSource.onerror = () => {
             // 连接异常处理
             eventSource?.close()
-
             message.notify('实时日志连接已关闭', message.error)
             realtimeLogData.value = false
-
+            this.eventSource = null
         }
 
         this.closeOldConnection()
