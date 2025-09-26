@@ -9,28 +9,36 @@ import router from '@/router'
 
 const ruleEdited = ref(false)
 
-function isRuleRoute(path: string) {
+export function isRuleRoute(path: string) {
     return path.includes('rules')
 }
 
-router.beforeEach((to, from, next) => {
+export async function confirmLeaveRuleRoute() {
+    return await new Promise<boolean | void>((resolve) => {
+        message.confirm('规则未保存，确认离开？', '提示', () => {
+            ruleEdited.value = false
+            resolve(true)
+        }, () => {
+            resolve(false)
+        })
+    })
+}
+
+router.beforeEach(async (to, from) => {
     // noToken 默认为 false
     const toIs = isRuleRoute(to.path)
     const fromIs = isRuleRoute(from.path)
-    if (toIs && !fromIs) {
+
+    if (/\/new$/.test(from.path)) {
+        // 默认已经在组件内做了处理
+        return
+    } else if (toIs && !fromIs) {
         // 进入规则页面
         fetchRules(true)
-        next()
+
     } else if (!toIs && fromIs && ruleEdited.value) {
         // 离开规则页面且规则被修改
-        message.confirm('规则未保存，确认离开？', '提示', () => {
-            ruleEdited.value = false
-            next()
-        }, () => {
-            next(false)
-        })
-    } else {
-        next()
+        return await confirmLeaveRuleRoute()
     }
 })
 

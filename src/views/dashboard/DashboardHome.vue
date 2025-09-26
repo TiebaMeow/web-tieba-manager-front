@@ -54,7 +54,7 @@ function changeUserState() {
             <div style="display: flex;justify-content: center;align-items: center; width: 100px;">
                 <a :href="'https://tieba.baidu.com/home/main?id=' + homeInfo.account.portrait" target="_blank">
                     <img style="border-radius: 50%;" width="90px"
-                        :src="TokenRequest.host + '/resources/portrait/' + homeInfo.account.portrait" alt="">
+                        :src="`${TokenRequest.host}/resources/portrait/${homeInfo.account.portrait}?size=m`" alt="">
                 </a>
             </div>
         </div>
