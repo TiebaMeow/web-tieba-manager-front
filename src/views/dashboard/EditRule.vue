@@ -71,7 +71,8 @@ function newRule(): boolean {
         whitelist: route.name === 'newWhitelistRule',
         conditions: [],
         last_modify: Math.floor(Date.now() / 1000),
-        manual_confirm: false
+        manual_confirm: false,
+        force_record_context: false,
     }
     ruleEdited.value = true
     return true
@@ -188,6 +189,8 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             </el-form>
             <div class="config-bar" v-show="!ruleDataCopy.whitelist" style="margin-bottom: 0;">
                 <el-checkbox v-model="ruleDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit"
+                    @change="ruleEdited = true" />
+                <el-checkbox v-model="ruleDataCopy.force_record_context" label="强制记录处理过程" :disabled="!canEdit"
                     @change="ruleEdited = true" />
             </div>
             <div class="sticky-bar" style="padding-top: 20px; margin-bottom: 20px;" :style="{

@@ -23,6 +23,7 @@ interface UserConfig {
         fast_process: boolean;
         content_validate_expire: number;
         confirm_expire: number;
+        record_all_context: boolean;
     };
 }
 
@@ -324,6 +325,11 @@ const ifShowQrcode = Qrcode.show
                                 <i-ep-question-filled />
                             </el-icon>
                         </el-tooltip>
+                    </el-form-item>
+                    <el-form-item label="过程记录" prop="process.record_all_context">
+                        <el-switch v-model="userConfig.process.record_all_context" @change="edited = true"
+                            active-text="所有处理规则" inactive-text="最终匹配的规则"
+                            style="--el-switch-on-color: rgb(121, 187, 255); --el-switch-off-color: rgb(121, 187, 255)" />
                     </el-form-item>
                     <el-form-item label="处理类型">
                         <el-checkbox v-model="userConfig.forum.thread" label="主题帖"

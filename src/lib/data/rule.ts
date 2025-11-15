@@ -103,6 +103,7 @@ interface Condition {
 interface Rule {
     name: string
     manual_confirm: boolean
+    force_record_context: boolean
     last_modify: number
     whitelist: boolean
     operations: OperationGroup

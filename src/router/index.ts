@@ -10,6 +10,26 @@ type DashboardRouteRecordRaw = RouteRecordRaw & {
     }
 }
 
+export const processDashboardRoutes: DashboardRouteRecordRaw[] = [
+    {
+        path: '/process/search',
+        name: 'processSearch',
+        meta: {
+            hide: true
+        },
+        // TODO 删去不必要的组件加载
+        component: () => import('../views/dashboard/process/ProcessIndex.vue')
+    },
+    {
+        path: '/process/detail/:pid(\\d+)',
+        name: 'processDetail',
+        meta: {
+            hide: true
+        },
+        component: () => import('../views/dashboard/process/ProcessDetail.vue')
+    }
+]
+
 export const DashboardRoutes: DashboardRouteRecordRaw[] = [
     {
         path: '/home',
@@ -76,6 +96,15 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/dashboard/EditRule.vue')
     },
     {
+        path: '/process/index',
+        name: 'processIndex',
+        meta: {
+            title: '处理记录'
+        },
+        component: () => import('../views/dashboard/process/ProcessIndex.vue'),
+        children: processDashboardRoutes,
+    },
+    {
         path: '/user-log',
         name: 'userLog',
         meta: {
@@ -84,6 +113,7 @@ export const DashboardRoutes: DashboardRouteRecordRaw[] = [
         component: () => import('../views/log/LogComponent.vue')
     },
 ]
+
 
 export const systemDashboardRoutes: DashboardRouteRecordRaw[] = [
     {
