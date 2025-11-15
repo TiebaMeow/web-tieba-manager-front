@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import TokenRequest from '@/lib/token';
 
 import ProcessSearch from './ProcessSearch.vue';
 
 import type { FormInstance, FormRules } from 'element-plus';
+import { SwitchTokenEvent } from '@/lib/data/tokenManager';
 
 const PAGE_SIZE = 10;
 
@@ -25,9 +26,12 @@ const overview = ref<RefResponse<{
     hint_rules: Array<string>;
 }>>(null);
 
-TokenRequest.fetch(overview, {
-    url: '/api/process/overview',
-})
+function fetchOverview() {
+    TokenRequest.fetch(overview, {
+        url: '/api/process/overview',
+    })
+}
+fetchOverview();
 
 const searchResult = ref<RefResponse<{
     page: {
@@ -60,6 +64,13 @@ function fetchRecentHits(page: number = 1) {
 if (route.name === 'processIndex') {
     fetchRecentHits();
 }
+onUnmounted(SwitchTokenEvent.on(() => {
+    setTimeout(() => {
+        // 不setTimeout会报错，神必
+        fetchOverview();
+    });
+    fetchRecentHits();
+}));
 
 const searchTypeDict = {
     rule: '规则',

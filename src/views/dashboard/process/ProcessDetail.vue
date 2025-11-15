@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onUnmounted } from 'vue';
 import { onBeforeRouteUpdate, useRoute, useRouter, type RouteLocation } from 'vue-router';
 import axios from 'axios';
 
@@ -121,11 +121,10 @@ function refreshData(r: RouteLocation = route) {
 
 onBeforeRouteUpdate((to) => {
     refreshData(to);
-});
-SwitchTokenEvent.on(() => {
+})
+onUnmounted(SwitchTokenEvent.on(() => {
     refreshData();
-});
-
+}))
 
 const showReprocessDialog = ref(false);
 const executeReprocessOptions = ref<{
@@ -254,8 +253,9 @@ async function reprocess() {
                                     </h3>
                                     <el-tag v-if="condition.key" class="tag" size="small">{{ condition.key }}</el-tag>
                                 </div>
-                                <p class="info-container">
-                                    <div v-if="condition.context === UNPROCESSED_TEXT" style="color: gray; display: flex; align-items: center;">
+                                <div class="info-container">
+                                    <div v-if="condition.context === UNPROCESSED_TEXT"
+                                        style="color: gray; display: flex; align-items: center;">
                                         <i>未处理，无法提供信息</i>
                                         <el-tooltip content="为节省性能，匹配失败后的部分条件不会被处理" placement="top">
                                             <el-icon color="gray" style="margin-left: 10px;">
@@ -267,7 +267,7 @@ async function reprocess() {
                                         <template v-for="(line, line_index) in condition.context.split('\n')"
                                             :key="line_index">{{ line }}<br></template>
                                     </template>
-                                </p>
+                                </div>
                             </el-card>
                         </el-timeline-item>
                     </el-timeline>
