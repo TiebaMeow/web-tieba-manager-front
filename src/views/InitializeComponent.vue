@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, type Ref, onMounted } from 'vue';
 import NumberInput from '@/components/NumberInput.vue';
 import message from '@/lib/message';
 import Requests from '@/lib/request';
-import { useRouter } from 'vue-router';
 import FORM_RULES from '@/lib/data/forumRules';
 import type { FormInstance, FormRules } from 'element-plus';
 import { AxiosError } from 'axios';

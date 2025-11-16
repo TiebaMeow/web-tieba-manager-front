@@ -18,6 +18,27 @@ export default defineConfig({
         vueDevTools(),
         ElementPlus({}),
         AutoImport({
+            imports: [
+                'vue',
+                {
+                    'vue-router': [
+                        'createRouter',
+                        'createWebHashHistory',
+                        'useLink',
+                        'useRoute',
+                        'useRouter',
+                        'onBeforeRouteLeave',
+                        'onBeforeRouteUpdate'
+                    ]
+                }
+            ],
+            vueTemplate: true,
+            dts: './auto-imports.d.ts',
+            eslintrc: {
+                enabled: true,
+                filepath: './.eslintrc-auto-import.json',
+                globalsPropValue: true
+            },
             resolvers: [
                 ElementPlusResolver(),
                 IconsResolver({

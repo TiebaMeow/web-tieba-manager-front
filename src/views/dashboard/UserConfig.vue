@@ -2,9 +2,7 @@
 import message from '@/lib/message'
 import TokenRequest from '@/lib/token'
 import { fetchHomeInfo } from '@/lib/data/common'
-import { ref, onUnmounted, type Ref } from 'vue'
 import { currTokenData, SwitchTokenEvent } from '@/lib/data/tokenManager'
-import { onBeforeRouteLeave } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 
 interface UserConfig {

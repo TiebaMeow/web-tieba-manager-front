@@ -1,6 +1,5 @@
 import axios from 'axios'
 import type { AxiosResponse, Canceler } from 'axios'
-import type { Ref } from 'vue'
 
 import { getData } from './utils'
 

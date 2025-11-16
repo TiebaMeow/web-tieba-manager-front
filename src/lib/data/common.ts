@@ -1,4 +1,3 @@
-import { ref } from "vue"
 import TokenRequest from "../token"
 import { setTokenInfo, currToken, SwitchTokenEvent } from "./tokenManager"
 

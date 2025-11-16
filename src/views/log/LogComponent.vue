@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue';
 import TokenRequest from '@/lib/token';
 import type { ScrollbarInstance } from 'element-plus';
-import { useRoute } from 'vue-router';
 import message from '@/lib/message';
 import { getData } from '@/lib/utils';
 import { SwitchTokenEvent } from '@/lib/data/tokenManager';
@@ -17,6 +15,7 @@ const SCROLL_TOLERANCE = 50
 const route = useRoute();
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL'
+type TagType = 'info' | 'primary' | 'warning' | 'danger'
 
 const system = computed(() => route.path.startsWith('/system-log'))
 const apiUrl = computed(() => system.value ? '/api/system/log/' : '/api/log/')
@@ -40,13 +39,15 @@ interface LogDataWithSeq extends LogData {
     seq?: number
 }
 
-const LevelTag = {
+const LevelTag: Record<LogLevel, TagType> = {
     DEBUG: 'info',
     INFO: 'primary',
     WARN: 'warning',
     ERROR: 'danger',
     CRITICAL: 'danger',
 }
+
+const levelTagEntries = computed(() => Object.entries(LevelTag) as Array<[LogLevel, TagType]>)
 
 const logList = ref<string[]>([]);
 
@@ -313,7 +314,7 @@ const filteredLogData = computed<LogDataWithSeq[] | false>(() => {
         <h2>{{ system ? "系统" : '' }}日志</h2>
         <div style="display: flex; align-items: center; flex-wrap: wrap;">
             <el-select v-model="selectedLevels" multiple placeholder="选择日志级别" style="width: 220px; margin-right: 10px;">
-                <el-option v-for="(tag, level) in LevelTag" :key="level" :value="level">
+                <el-option v-for="([level, tag]) in levelTagEntries" :key="level" :value="level">
                     <el-tag :type="tag" effect="plain">{{ level }}</el-tag>
                 </el-option>
                 <template #tag>

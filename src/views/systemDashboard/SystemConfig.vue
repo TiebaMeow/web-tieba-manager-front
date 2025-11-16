@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import TokenRequest from '@/lib/token'
 import message from '@/lib/message'
-import { onBeforeRouteLeave } from 'vue-router'
 import FORM_RULES from '@/lib/data/forumRules'
 
 const edited = ref(false)

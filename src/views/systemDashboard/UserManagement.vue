@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { DIALOG_WIDTH } from '@/lib/constance';
 
 import TokenRequest from '@/lib/token';

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { getViewMode } from './lib/utils';
-import { useRoute, useRouter } from 'vue-router';
 import message from './lib/message';
 import { currToken, currTokenData, deleteToken, sequenceHistoryTokens, switchTokenByHistory } from './lib/data/tokenManager';
 import { DIALOG_WIDTH } from './lib/constance';

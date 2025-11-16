@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
 
 import TokenRequest from '@/lib/token';
 import { formatDate, getContentMark, gotoPortrait } from '@/lib/utils';

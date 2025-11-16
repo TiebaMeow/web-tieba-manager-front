@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import TokenRequest from '@/lib/token';
 import message from '@/lib/message';
 import { getData } from '@/lib/utils';
 import { AxiosError } from 'axios';
-import { useRoute, useRouter } from 'vue-router';
 import FORM_RULES from '@/lib/data/forumRules';
 
 const router = useRouter()

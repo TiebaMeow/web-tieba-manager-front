@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
 import { getRules, setRules, canEdit, ruleEdited } from '@/lib/data/rule';
 import router from '@/router';
 import { getViewMode } from '@/lib/utils';

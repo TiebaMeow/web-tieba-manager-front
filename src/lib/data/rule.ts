@@ -1,10 +1,11 @@
-import { ref, computed } from 'vue'
 import TokenRequest from '../token'
 import message from '../message'
 import { AxiosError } from 'axios'
 import type { OperationGroup } from './operation'
 import { currTokenData, SwitchTokenEvent } from './tokenManager'
 import router from '@/router'
+
+type RouteLocationNormalized = import('vue-router').RouteLocationNormalized
 
 
 const ruleEdited = ref(false)
@@ -24,7 +25,7 @@ export async function confirmLeaveRuleRoute() {
     })
 }
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
     // noToken 默认为 false
     const toIs = isRuleRoute(to.path)
     const fromIs = isRuleRoute(from.path)

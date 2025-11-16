@@ -1,4 +1,3 @@
-import type { Ref } from 'vue'
 export { v4 as uuid } from 'uuid'
 
 

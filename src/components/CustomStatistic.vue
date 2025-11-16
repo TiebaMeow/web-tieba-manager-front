@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 
 const { value, title } = defineProps<{ value: string | number, title: string }>()
 

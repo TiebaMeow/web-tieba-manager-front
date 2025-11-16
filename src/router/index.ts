@@ -1,5 +1,6 @@
-import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
-
+type RouteRecordRaw = import('vue-router').RouteRecordRaw
+type RouteLocationNormalized = import('vue-router').RouteLocationNormalized
+type NavigationGuardNext = import('vue-router').NavigationGuardNext
 
 type DashboardRouteRecordRaw = RouteRecordRaw & {
     meta: {
@@ -193,7 +194,7 @@ const router = createRouter({
 
 import { currToken } from '../lib/data/tokenManager'
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     // noToken 默认为 false
     const noToken = to.meta?.noToken === true;
     if (!noToken && currToken.value === '') {

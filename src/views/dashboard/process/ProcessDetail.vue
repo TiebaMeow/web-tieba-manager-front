@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onUnmounted } from 'vue';
-import { onBeforeRouteUpdate, useRoute, useRouter, type RouteLocation } from 'vue-router';
+type RouteLocation = import('vue-router').RouteLocation
 import axios from 'axios';
 
 import message from '@/lib/message';
@@ -54,6 +53,16 @@ interface Context {
     }>
 }
 
+type ConditionStyle = 'success' | 'danger' | 'info'
+
+interface DisplayCondition {
+    type: string
+    name: string
+    context: string
+    key: string | null
+    style: ConditionStyle
+}
+
 
 const detail = ref<RefResponse<Context>>(undefined);
 
@@ -75,7 +84,7 @@ const contexts = computed(() => {
     return detail.value.rules.map(rule => {
         return {
             rule,
-            conditions: rule.conditions.map((ci, rci) => {
+            conditions: rule.conditions.map((ci, rci): DisplayCondition => {
                 /*
                 ci -> condition index 表示对于conditions数组的索引
                 rci -> rule condition index 表示在当前rule中的序号
@@ -86,12 +95,13 @@ const contexts = computed(() => {
                 const c = detail.value.conditions[ci];
                 const info = conditionInfoDict.value[c.type];
                 const failed_step = rule.failed_step || 0
+                const style: ConditionStyle = rule.result || rci < failed_step ? 'success' : rci === failed_step ? 'danger' : 'info'
                 return {
                     type: c.type,
                     name: info ? info.name : c.type,
                     context: c.context,
                     key: c.key,
-                    style: rule.result || rci < failed_step ? "success" : rci === failed_step ? "danger" : "info"
+                    style
                 };
             })
         }

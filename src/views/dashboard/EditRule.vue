@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import {
     type Rule,
     getRules,
@@ -15,7 +14,6 @@ import {
 
 } from '@/lib/data/rule';
 import router from '@/router';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
 import { copy } from '@/lib/utils';
 import message from '@/lib/message';
 import CONDITION_COMPONENTS from '../conditionTemplate';
@@ -301,7 +299,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <div v-else class="center add-slot">
                         <h3>/ᐠ｡ꞈ｡ᐟ\</h3>
                         <div style="width: 100%; text-align: center;">
-                            <el-button @click="addOperation = true" type="plain">点我添加操作</el-button>
+                            <el-button @click="addOperation = true" type="primary" plain>点我添加操作</el-button>
                         </div>
                     </div>
                 </el-card>

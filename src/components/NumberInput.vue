@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 
 const model = defineModel<number>()
 const { defaultValue, placeholder, validatePositive = true, clearable = true, disabled = false } = defineProps<{

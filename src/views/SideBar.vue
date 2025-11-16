@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { getData } from '@/lib/utils';
 import CollapseItem from '@/components/CollapseItem';
-import { useRoute, useRouter } from 'vue-router';
 import { DashboardRoutes, systemDashboardRoutes } from '@/router';
 import { getViewMode } from '@/lib/utils';
 import { getHomeInfo } from '@/lib/data/common';

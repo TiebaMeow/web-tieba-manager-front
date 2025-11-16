@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Document, User } from '@element-plus/icons-vue';
 import { gotoPortrait, gotoPost } from '@/lib/utils';
 
+
+type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL'
+type TagType = 'info' | 'primary' | 'warning' | 'danger'
 
 const {
     log,
@@ -12,7 +14,7 @@ const {
     log: {
         time: string
         name: string
-        level: string
+        level: LogLevel
         message: string
         seq?: number
         extra: {
@@ -27,12 +29,12 @@ const {
 }>()
 
 
-const LOG_LEVEL_TYPE: Record<string, string> = {
-    'DEBUG': 'info',
-    'INFO': 'primary',
-    'WARNING': 'warning',
-    'ERROR': 'danger',
-    'CRITICAL': 'danger'
+const LOG_LEVEL_TYPE: Record<LogLevel, TagType> = {
+    DEBUG: 'info',
+    INFO: 'primary',
+    WARN: 'warning',
+    ERROR: 'danger',
+    CRITICAL: 'danger'
 }
 
 const multiLine = computed(() => {
