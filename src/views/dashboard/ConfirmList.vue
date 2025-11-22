@@ -7,7 +7,10 @@ import { formatDate, getContentMark, iterateObject } from '@/lib/utils';
 import message from '@/lib/message';
 import { gotoPost, gotoPortrait } from '@/lib/utils';
 import { DIALOG_WIDTH } from '@/lib/constance';
-import { SwitchTokenEvent } from '@/lib/data/tokenManager';
+import { SwitchTokenEvent, currToken } from '@/lib/data/tokenManager';
+import { requestBrowserNotification, browserNotify } from '@/lib/notification';
+import { getData, saveData } from '@/lib/utils';
+import { Refresh } from '@element-plus/icons-vue';
 
 interface ConfirmData {
     content: Thread | Post | Comment
@@ -18,6 +21,7 @@ interface ConfirmData {
 const confirmList = ref<null | ConfirmData[]>(null)
 const confirmSelectedDict = ref<{ [key: number]: boolean }>({})
 const confirmSelectedCount = ref(0)
+const loading = ref(false)
 
 
 const AutoRefresh = new class AutoRefresh {
@@ -91,27 +95,55 @@ const ifSelected = computed(() => confirmSelectedCount.value > 0)
 
 
 async function fetchConfirmList() {
+    loading.value = true
     try {
         const response = await TokenRequest.get<BaseResponse<ConfirmData[]>>({
             url: '/api/confirm/get_list'
         })
-        const newPids = new Set<number>()
+        const fetchPids = new Set<number>()
         response.data.data.forEach(item => {
-            newPids.add(item.content.pid)
+            fetchPids.add(item.content.pid)
         })
 
+        // 清理不存在的选中项
         iterateObject(confirmSelectedDict.value, (key, value) => {
             const pid = Number(key)
-            if (!newPids.has(pid)) {
+            if (!fetchPids.has(pid)) {
                 delete confirmSelectedDict.value[pid]
                 if (value) {
                     confirmSelectedCount.value -= 1
                 }
             }
         })
+
+
+
+        // 处理新确认通知
+        if (confirmList.value !== null) {
+            // 首次加载不通知
+            const existedPids = new Set<number>()
+            if (confirmList.value) {
+                confirmList.value.forEach(item => {
+                    existedPids.add(item.content.pid)
+                })
+            }
+            const newConfirms = response.data.data.filter(item => !existedPids.has(item.content.pid))
+            if (ifNotifyNewConfirm.value && newConfirms.length > 0) {
+                newConfirms.forEach(item => {
+                    browserNotify('有新的确认内容', {
+                        body: `${getContentMark(item.content)} 来自规则【${item.rule_name}】`,
+                        icon: TokenRequest.host + '/resources/portrait/' + item.content.user.portrait,
+                        tag: String(item.content.pid)
+                    })
+                })
+            }
+        }
+
         confirmList.value = response.data.data
     } catch {
         message.notify('数据获取失败', message.error)
+    } finally {
+        loading.value = false
     }
 }
 
@@ -216,6 +248,48 @@ const confirmRuleName = computed(() => {
 })
 const selectedRuleName = ref<string[]>([])
 
+const ifNotifyNewConfirm = ref(false)
+
+const notificationSettings = getData<Record<string, boolean>>('notificationSettings')
+if (notificationSettings && notificationSettings[currToken.value] !== undefined) {
+    ifNotifyNewConfirm.value = notificationSettings[currToken.value]
+    if (ifNotifyNewConfirm.value) {
+        // 检查权限
+        requestBrowserNotification().then(permission => {
+            if (permission !== 0) {
+                ifNotifyNewConfirm.value = false
+            }
+        })
+    }
+}
+
+async function setNotification(enable: boolean) {
+    const data = getData<Record<string, boolean>>('notificationSettings') || {}
+    if (!enable) {
+        data[currToken.value] = false
+        saveData('notificationSettings', data)
+        ifNotifyNewConfirm.value = false
+        return
+    }
+    const permission = await requestBrowserNotification()
+    if (permission === 0) {
+        ifNotifyNewConfirm.value = true
+        data[currToken.value] = true
+        saveData('notificationSettings', data)
+    } else if (permission === -2) {
+        ifNotifyNewConfirm.value = false
+        message.notify('浏览器通知权限被拒绝，无法启用通知', message.error)
+    } else if (permission === -1) {
+        ifNotifyNewConfirm.value = false
+        message.notify('浏览器不支持通知功能，无法启用通知', message.error)
+    } else {
+        ifNotifyNewConfirm.value = false
+        message.notify('遇到意外错误，请联系管理员', message.error)
+    }
+
+}
+
+
 </script>
 
 <template>
@@ -236,10 +310,16 @@ const selectedRuleName = ref<string[]>([])
         </div>
     </el-dialog>
     <div style="position: absolute; top: 0px; right: 0px; padding: 10px;">
-        自动刷新
-        <el-checkbox v-model="AutoRefresh.enable.value"></el-checkbox>
-        <el-progress v-if="AutoRefresh.enable.value && confirmList" :percentage="AutoRefresh.percentage.value"
-            :show-text="false" />
+        <div>
+            推送新确认
+            <el-checkbox :model-value="ifNotifyNewConfirm" @update:model-value="setNotification"></el-checkbox>
+        </div>
+        <div>
+            自动刷新
+            <el-checkbox v-model="AutoRefresh.enable.value"></el-checkbox>
+            <el-progress v-if="AutoRefresh.enable.value && confirmList" :percentage="AutoRefresh.percentage.value"
+                :show-text="false" />
+        </div>
     </div>
     <div style="max-width: 1000px; position: relative;flex-grow: 1;">
         <div style="max-width: 600px; padding: 10px;" v-if="confirmList && confirmList.length > 0">
@@ -251,51 +331,56 @@ const selectedRuleName = ref<string[]>([])
                 </el-button>
                 <el-button type="danger" @click="confirmSelected('execute')"> {{ ifSelected ? '确认选中' : '确认所有' }}
                 </el-button>
+                <el-button type="primary" :icon="Refresh" @click="fetchConfirmList" />
             </div>
             <!-- <el-divider /> -->
-            <div v-for="({ content, rule_name }, index) in confirmList" style="margin-bottom: 20px;"
-                :key="content.pid">
-                <!-- 点击整张卡片切换选中 -->
-                <el-card :class="{ 'confirm-card-selected': isSelected(content) }" @click="toggleSelect(content)">
-                    <div class="head">
-                        <div class="avatar-container" @click.stop="gotoPortrait(content.user.portrait)">
-                            <img :src="TokenRequest.host + '/resources/portrait/' + content.user.portrait" alt="头像"
+            <div v-loading="loading">
+                <div v-for="({ content, rule_name }, index) in confirmList" style="margin-bottom: 20px;"
+                    :key="content.pid">
+                    <!-- 点击整张卡片切换选中 -->
+                    <el-card :class="{ 'confirm-card-selected': isSelected(content) }" @click="toggleSelect(content)">
+                        <div class="head">
+                            <div class="avatar-container" @click.stop="gotoPortrait(content.user.portrait)">
+                                <img :src="TokenRequest.host + '/resources/portrait/' + content.user.portrait" alt="头像"
+                                    loading="lazy" />
+                            </div>
+                            <div style="display: flex;flex: 1 0 auto;flex-direction: column">
+                                <span>{{ content.user.nick_name }} {{ content.user.level }}级</span>
+                                <span style="color: grey">{{ formatDate(content.create_time) }}</span>
+                            </div>
+                            <div style="display: flex; flex-grow: 1; justify-content: flex-end;">
+                                <el-tag style="font-size: 14px;">{{ rule_name }}</el-tag>
+                            </div>
+                        </div>
+                        <div class="body">
+                            <div style="margin-bottom: 10px; display: flex;">
+                                <h3 style="margin: 0; margin-bottom: 10px; flex-grow: 1;">{{ getContentMark(content) }}
+                                </h3>
+                            </div>
+                            <p v-if="content.text" style="margin: 0; word-break: break-all;">
+                                <template v-for="(line, index) in content.text.split('\n')" :key="index">
+                                    {{ line }}<br />
+                                </template>
+                            </p>
+                        </div>
+                        <div v-if="content.images.length > 0" class="image-container">
+                            <img v-for="image in content.images"
+                                :src="TokenRequest.host + '/resources/image/' + image.hash" :key="image.hash" alt="图片"
                                 loading="lazy" />
                         </div>
-                        <div style="display: flex;flex: 1 0 auto;flex-direction: column">
-                            <span>{{ content.user.nick_name }} {{ content.user.level }}级</span>
-                            <span style="color: grey">{{ formatDate(content.create_time) }}</span>
+                        <el-divider></el-divider>
+                        <div class="card-footer">
+                            <div>
+                                <el-checkbox :model-value="isSelected(content)" />
+                            </div>
+                            <div>
+                                <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
+                                <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
+                                <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
+                            </div>
                         </div>
-                        <div style="display: flex; flex-grow: 1; justify-content: flex-end;">
-                            <el-tag style="font-size: 14px;">{{ rule_name }}</el-tag>
-                        </div>
-                    </div>
-                    <div class="body">
-                        <div style="margin-bottom: 10px; display: flex;">
-                            <h3 style="margin: 0; margin-bottom: 10px; flex-grow: 1;">{{ getContentMark(content) }}</h3>
-                        </div>
-                        <p v-if="content.text" style="margin: 0; word-break: break-all;">
-                            <template v-for="(line, index) in content.text.split('\n')" :key="index">
-                                {{ line }}<br />
-                            </template>
-                        </p>
-                    </div>
-                    <div v-if="content.images.length > 0" class="image-container">
-                        <img v-for="image in content.images" :src="TokenRequest.host + '/resources/image/' + image.hash"
-                            :key="image.hash" alt="图片" loading="lazy" />
-                    </div>
-                    <el-divider></el-divider>
-                    <div class="card-footer">
-                        <div>
-                            <el-checkbox :model-value="isSelected(content)" />
-                        </div>
-                        <div>
-                            <el-button type="primary" @click.stop="gotoPost(content)">原贴</el-button>
-                            <el-button type="success" @click.stop="confirm('ignore', content, index)">忽略</el-button>
-                            <el-button type="danger" @click.stop="confirm('execute', content, index)">确认</el-button>
-                        </div>
-                    </div>
-                </el-card>
+                    </el-card>
+                </div>
             </div>
         </div>
 
@@ -306,7 +391,7 @@ const selectedRuleName = ref<string[]>([])
             </div>
         </div>
         <div v-else style="max-width: 600px; padding: 10px; display: flex; justify-self: center; align-items: center;"
-            v-loading="true">
+            v-loading="loading">
             <h2>加载中...</h2>
         </div>
     </div>
