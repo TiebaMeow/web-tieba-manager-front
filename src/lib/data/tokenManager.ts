@@ -3,8 +3,9 @@ import { saveData, getData, hasOwn, iterateObject } from '../utils';
 import TokenRequest from '../token';
 import Hook from '../hook';
 
-
+// 在 token 切换后触发，参数为新的 token，未指定则为 undefined
 export const SwitchTokenEvent = new Hook<string | undefined>()
+
 
 interface TokenData {
     host: string,
