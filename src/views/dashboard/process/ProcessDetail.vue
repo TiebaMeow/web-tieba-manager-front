@@ -56,6 +56,9 @@ interface Context {
 
 
 const detail = ref<RefResponse<Context>>(undefined);
+const invalidDetail = computed(() => {
+    return !detail.value || detail.value.content.floor === 0
+})
 
 async function fetchDetail(pid: number) {
     await TokenRequest.fetch(detail, {
@@ -238,7 +241,7 @@ async function reprocess() {
             <span style="color: gray;">处理时间：{{ formatDate(detail.process_time) }}</span>
         </div>
         <el-button @click="gotoPost(detail.content.tid, detail.content.pid)" type="primary">原贴</el-button>
-        <el-button @click="openReprocessDialog" type="primary">重新处理</el-button>
+        <el-button @click="openReprocessDialog" type="primary" :disabled="invalidDetail">重新处理</el-button>
         <div style="width: 100%">
             <el-tabs v-model="currRule" style="margin-top: 15px;">
                 <el-tab-pane v-for="({ rule, conditions }, rule_index) in contexts" :key="rule_index"
