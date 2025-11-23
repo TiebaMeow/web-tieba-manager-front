@@ -12,10 +12,12 @@ const {
     content,
     result_rule,
     process_time,
+    is_whitelist
 } = defineProps<{
     content: Content;
-    result_rule: string;
+    result_rule: string | null;
     process_time: number;
+    is_whitelist: boolean;
 }>();
 
 const firstImage = computed(() => {
@@ -58,7 +60,9 @@ function truncateText(text: string, maxLen: number = MAX_PREVIEW_LENGTH) {
             </div>
             <div style="display: flex; flex-grow: 1; justify-content: flex-end">
                 <el-tag type="primary" style="margin-right: 10px;">{{ formatDate(process_time) }}</el-tag>
-                <el-tag type="primary" style="margin-right: 10px;">{{ result_rule }}</el-tag>
+                <el-tag v-if="result_rule" :type="is_whitelist ? 'success' : 'primary'" style="margin-right: 10px;">{{
+                    result_rule }}</el-tag>
+                <el-tag v-else type="info" style="margin-right: 10px;">未匹配</el-tag>
             </div>
         </div>
         <div class="body">
