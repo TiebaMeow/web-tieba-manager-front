@@ -153,6 +153,7 @@ SwitchTokenEvent.on((token) => {
         confirmList.value = null
         clearConfirmSelected()
         fetchConfirmList()
+        refreshIfNotifyNewConfirm()
     } else {
         confirmList.value = []
         clearConfirmSelected()
@@ -250,18 +251,24 @@ const selectedRuleName = ref<string[]>([])
 
 const ifNotifyNewConfirm = ref(false)
 
-const notificationSettings = getData<Record<string, boolean>>('notificationSettings')
-if (notificationSettings && notificationSettings[currToken.value] !== undefined) {
-    ifNotifyNewConfirm.value = notificationSettings[currToken.value]
-    if (ifNotifyNewConfirm.value) {
-        // 检查权限
-        requestBrowserNotification().then(permission => {
-            if (permission !== 0) {
-                ifNotifyNewConfirm.value = false
-            }
-        })
+
+function refreshIfNotifyNewConfirm() {
+    const notificationSettings = getData<Record<string, boolean>>('notificationSettings')
+    if (notificationSettings && notificationSettings[currToken.value] !== undefined) {
+        ifNotifyNewConfirm.value = notificationSettings[currToken.value]
+        if (ifNotifyNewConfirm.value) {
+            // 检查权限
+            requestBrowserNotification().then(permission => {
+                if (permission !== 0) {
+                    ifNotifyNewConfirm.value = false
+                }
+            })
+        }
     }
 }
+
+refreshIfNotifyNewConfirm()
+
 
 async function setNotification(enable: boolean) {
     const data = getData<Record<string, boolean>>('notificationSettings') || {}
