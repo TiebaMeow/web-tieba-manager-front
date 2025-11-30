@@ -235,7 +235,10 @@ async function reprocess() {
     <div v-if="detail">
         <div style="display: flex; align-items: center; gap: 15px;margin-bottom: 20px;">
             <h2 style="margin: 0;">{{ getContentMark(detail.content) }}</h2>
-            <el-tag :type="detail.is_whitelist ? 'success' : 'primary'">{{ detail.result_rule }}</el-tag>
+            <el-tag v-if="detail.result_rule" :type="detail.is_whitelist ? 'success' : 'primary'"
+                style="margin-right: 10px;">{{
+                    detail.result_rule }}</el-tag>
+            <el-tag v-else type="info" style="margin-right: 10px;">未匹配</el-tag>
         </div>
         <div style="margin-bottom: 20px;">
             <span style="color: gray;">处理时间：{{ formatDate(detail.process_time) }}</span>
