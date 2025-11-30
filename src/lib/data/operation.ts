@@ -13,7 +13,7 @@ export const CUSTOM_OPERATION_OPTIONS = {
 
 
 export interface Operation {
-    type: 'delete' | 'block'
+    type: string
     options: object
     direct: boolean
 }

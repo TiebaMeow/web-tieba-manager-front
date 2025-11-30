@@ -62,27 +62,50 @@ interface ConditionInfo {
     option_descs: Array<ConditionOptionDesc>
 }
 
-const conditionInfoList = ref<RefResponse<ConditionInfo[]>>(undefined)
-async function getConditionInfoList() {
-    if (!conditionInfoList.value) {
-        await TokenRequest.fetch(conditionInfoList, {
+interface OperationInfo {
+    type: string
+    name: string
+    category: string
+    description: string
+    option_descs: Array<ConditionOptionDesc>
+}
+
+
+const ruleInfo = ref<RefResponse<{
+    conditions: ConditionInfo[]
+    operations: OperationInfo[]
+}>>(undefined)
+
+async function getRuleInfo() {
+    if (!ruleInfo.value) {
+        await TokenRequest.fetch(ruleInfo, {
             url: '/api/rule/info'
         })
     }
 }
 const conditionInfoDict = computed(() => {
     const dict: Record<string, ConditionInfo> = {}
-    if (conditionInfoList.value) {
-        conditionInfoList.value.forEach(conditionInfo => {
+    if (ruleInfo.value) {
+        ruleInfo.value.conditions.forEach(conditionInfo => {
             dict[conditionInfo.type] = conditionInfo
+        })
+    }
+    return dict
+})
+
+const operationInfoDict = computed(() => {
+    const dict: Record<string, OperationInfo> = {}
+    if (ruleInfo.value) {
+        ruleInfo.value.operations.forEach(operationInfo => {
+            dict[operationInfo.type] = operationInfo
         })
     }
     return dict
 })
 const conditionCategories = computed(() => {
     const categories: string[] = []
-    if (conditionInfoList.value) {
-        conditionInfoList.value.forEach((conditionInfo) => {
+    if (ruleInfo.value) {
+        ruleInfo.value.conditions.forEach((conditionInfo) => {
             if (categories.indexOf(conditionInfo.category) === -1) {
                 categories.push(conditionInfo.category)
             }
@@ -92,8 +115,8 @@ const conditionCategories = computed(() => {
 })
 const categorizedConditionType = computed(() => {
     const data: Record<string, string[]> = {}
-    if (conditionInfoList.value) {
-        conditionInfoList.value.forEach(conditionInfo => {
+    if (ruleInfo.value) {
+        ruleInfo.value.conditions.forEach(conditionInfo => {
             if (!Object.prototype.hasOwnProperty.call(data, conditionInfo.category)) {
                 data[conditionInfo.category] = []
             }
@@ -105,11 +128,40 @@ const categorizedConditionType = computed(() => {
     return data
 })
 
+export const operationCategories = computed(() => {
+    const categories: string[] = []
+    if (ruleInfo.value) {
+        ruleInfo.value.operations.forEach((operationInfo) => {
+            if (categories.indexOf(operationInfo.category) === -1) {
+                categories.push(operationInfo.category)
+            }
+        })
+    }
+    return categories
+})
+
+export const categorizedOperationType = computed(() => {
+    const data: Record<string, string[]> = {}
+    if (ruleInfo.value) {
+        ruleInfo.value.operations.forEach(operationInfo => {
+            if (!Object.prototype.hasOwnProperty.call(data, operationInfo.category)) {
+                data[operationInfo.category] = []
+            }
+            if (data[operationInfo.category].indexOf(operationInfo.type) === -1) {
+                data[operationInfo.category].push(operationInfo.type)
+            }
+        })
+    }
+    return data
+})
+
 interface Condition {
     type: string
     priority?: number
     options: object
 }
+
+
 
 interface Rule {
     name: string
@@ -132,7 +184,7 @@ export const canEdit = computed(() => {
 })
 
 function getRules() {
-    getConditionInfoList()
+    getRuleInfo()
     if (!rules.value) {
         TokenRequest.fetch(rules, {
             url: '/api/rule/get'
@@ -142,7 +194,7 @@ function getRules() {
 }
 
 async function fetchRules(refresh = false) {
-    await getConditionInfoList()
+    await getRuleInfo()
     if (!rules.value || refresh) {
         await TokenRequest.fetch(rules, {
             url: '/api/rule/get'
@@ -182,7 +234,7 @@ async function setRules(): Promise<boolean> {
 
 SwitchTokenEvent.on((token) => {
     if (token && router.currentRoute.value.path.includes('rules')) {
-        TokenRequest.fetch(conditionInfoList, {
+        TokenRequest.fetch(ruleInfo, {
             url: '/api/rule/info'
         })
         TokenRequest.fetch(rules, {
@@ -192,13 +244,14 @@ SwitchTokenEvent.on((token) => {
         router.push('/rules')
     } else {
         rules.value = undefined
-        conditionInfoList.value = undefined
+        ruleInfo.value = undefined
     }
 })
 
 export {
     rules,
     conditionInfoDict,
+    operationInfoDict,
     getRules,
     fetchRules,
     setRules,
