@@ -36,7 +36,7 @@ watchEffect(() => {
             <el-form-item v-for="desc in optionDescs" :label="desc.label" :key="desc.key">
                 <el-input v-if="desc.type === 'input'" :placeholder="desc.placeholder || ''"
                     v-model="data.options[desc.key]" @change="emit('change')" :disabled="!canEdit"
-                    :show-password="desc.extra.password" :type="desc.extra.textarea?'textarea':'text'"></el-input>
+                    :show-password="desc.extra?.password" :type="desc.extra?.textarea?'textarea':'text'"></el-input>
                 <el-input-number v-else-if="desc.type === 'number'" :placeholder="desc.placeholder || ''"
                     v-model.number="data.options[desc.key]" @change="emit('change')"
                     :disabled="!canEdit"></el-input-number>
