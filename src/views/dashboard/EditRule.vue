@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import {
     type Rule,
     getRules,
@@ -9,6 +9,9 @@ import {
     conditionCategories,
     categorizedConditionType,
     conditionInfoDict,
+    operationInfoDict,
+    operationCategories,
+    categorizedOperationType,
     ruleEdited,
     confirmLeaveRuleRoute,
     isRuleRoute
@@ -16,10 +19,10 @@ import {
 } from '@/lib/data/rule';
 import router from '@/router';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router';
-import { copy } from '@/lib/utils';
+import { copy, hasOwn } from '@/lib/utils';
 import message from '@/lib/message';
 import CONDITION_COMPONENTS from '../conditionTemplate';
-import { CUSTOM_OPERATION_OPTIONS, OPERATION_OPTIONS, type Operation } from '@/lib/data/operation';
+import { OPERATION_OPTIONS, type Operation } from '@/lib/data/operation';
 import OPERATION_COMPONENTS from '../operationTemplate';
 
 
@@ -159,13 +162,24 @@ async function saveRule() {
     }
 }
 
-const addRule = ref(false)
+const addCondition = ref(false)
 const addOperation = ref(false)
-const addRuleOption = ref<{
+const addConditionOption = ref<{
     category?: string
     type?: string
 }>({});
-const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS>(undefined)
+const addOperationOption = ref<{ category?: string, type?: string }>({})
+
+watch(addOperation, (val) => {
+    if (!val) return;
+    if (operationCategories.value && operationCategories.value.length === 1) {
+        addOperationOption.value.category = operationCategories.value[0]
+        addOperationOption.value.type = undefined
+    } else {
+        addOperationOption.value = {}
+    }
+})
+
 </script>
 
 <template>
@@ -218,38 +232,41 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             <template v-if="activeEdit === 'condition'">
                 <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
                     <component
-                        :is="CONDITION_COMPONENTS[((conditionInfoDict[condition.type] && conditionInfoDict[condition.type].series) || 'unknown') as keyof typeof CONDITION_COMPONENTS]"
+                        :is="hasOwn(CONDITION_COMPONENTS, conditionInfoDict[condition.type]?.series)
+                        ? CONDITION_COMPONENTS[conditionInfoDict[condition.type]?.series]
+                        : CONDITION_COMPONENTS.unknown"
                         @change="ruleEdited = true" v-model="ruleDataCopy.conditions[seq]"
                         @delete="ruleDataCopy.conditions.splice(seq, 1)" />
                 </template>
                 <el-card>
-                    <div v-if="addRule" class="center add-slot">
+                    <div v-if="addCondition" class="center add-slot">
                         <h3>( Φ ω Φ )</h3>
                         <div style="display: flex; width: 100%;">
                             <el-button style="margin-right: 10px;" @click="() => {
-                                addRule = false
-                                addRuleOption = {};
+                                addCondition = false
+                                addConditionOption = {};
                             }">取消</el-button>
-                            <el-select v-model="addRuleOption.category" placeholder="请选择类型"
-                                @change="() => addRuleOption.type = undefined" style="margin-right: 10px;">
+                            <el-select v-model="addConditionOption.category" placeholder="请选择类型"
+                                @change="() => addConditionOption.type = undefined" style="margin-right: 10px;">
                                 <el-option v-for="category in conditionCategories" :key="category" :label="category"
                                     :value="category"></el-option>
                             </el-select>
-                            <el-select v-if="addRuleOption.category" v-model="addRuleOption.type" placeholder="请选择属性">
-                                <el-option v-for="type in categorizedConditionType[addRuleOption.category]" :key="type"
-                                    :label="conditionInfoDict[type].name" :value="type"></el-option>
+                            <el-select v-if="addConditionOption.category" v-model="addConditionOption.type"
+                                placeholder="请选择属性">
+                                <el-option v-for="type in categorizedConditionType[addConditionOption.category]"
+                                    :key="type" :label="conditionInfoDict[type].name" :value="type"></el-option>
                             </el-select>
                             <el-select v-else disabled :modelValue="1">
                                 <el-option label="-" :value="1"></el-option>
                             </el-select>
                             <el-button type="primary" style="margin-left: 10px;" @click="() => {
-                                if (addRuleOption.category && addRuleOption.type) {
+                                if (addConditionOption.category && addConditionOption.type) {
                                     ruleDataCopy!.conditions.push({
-                                        type: addRuleOption.type,
+                                        type: addConditionOption.type,
                                         options: {},
                                     })
-                                    addRule = false
-                                    addRuleOption = {};
+                                    addCondition = false
+                                    addConditionOption = {};
                                     ruleEdited = true
                                 } else {
                                     message.notify('请先选择规则类型和子类型', message.warning)
@@ -260,15 +277,17 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                     <div v-else class="center add-slot">
                         <h3>/ᐠ｡ꞈ｡ᐟ\</h3>
                         <div style="width: 100%; text-align: center">
-                            <el-button @click="addRule = true">点我添加条件</el-button>
+                            <el-button @click="addCondition = true">点我添加条件</el-button>
                         </div>
                     </div>
                 </el-card>
             </template>
             <template v-else>
                 <template v-for="(operation, seq) in customOperations" :key="seq">
-                    <component :is="OPERATION_COMPONENTS[operation.type]" @change="ruleEdited = true"
-                        v-model="customOperations[seq]" @delete="customOperations.splice(seq, 1)" />
+                    <component
+                        :is="hasOwn(OPERATION_COMPONENTS, operation.type) ? OPERATION_COMPONENTS[operation.type] : OPERATION_COMPONENTS.custom"
+                        @change="ruleEdited = true" v-model="customOperations[seq]"
+                        @delete="customOperations.splice(seq, 1)" />
                 </template>
                 <el-card>
                     <div v-if="addOperation" class="center add-slot">
@@ -276,21 +295,31 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
                         <div style="display: flex; width: 100%;">
                             <el-button style="margin-right: 10px;" @click="() => {
                                 addOperation = false
-                                addOperationOption = undefined
+                                addOperationOption = {}
                             }">取消</el-button>
-                            <el-select v-model="addOperationOption" placeholder="请选择操作">
-                                <el-option v-for="(name, type) in CUSTOM_OPERATION_OPTIONS" :key="type" :label="name"
-                                    :value="type"></el-option>
+                            <el-select v-if="operationCategories && operationCategories.length !== 1"
+                                v-model="addOperationOption.category" placeholder="请选择分类"
+                                @change="() => addOperationOption.type = undefined" style="margin-right: 10px;">
+                                <el-option v-for="category in operationCategories" :key="category" :label="category"
+                                    :value="category"></el-option>
+                            </el-select>
+                            <el-select v-if="addOperationOption.category" v-model="addOperationOption.type"
+                                placeholder="请选择操作">
+                                <el-option v-for="type in categorizedOperationType[addOperationOption.category]"
+                                    :key="type" :label="operationInfoDict[type].name" :value="type"></el-option>
+                            </el-select>
+                            <el-select v-else disabled :modelValue="1">
+                                <el-option label="-" :value="1"></el-option>
                             </el-select>
                             <el-button type="primary" style="margin-left: 10px;" @click="() => {
-                                if (addOperationOption) {
+                                if (addOperationOption && addOperationOption.type) {
                                     customOperations.push({
-                                        type: addOperationOption,
+                                        type: addOperationOption.type,
                                         direct: false,
                                         options: {}
                                     })
                                     addOperation = false
-                                    addOperationOption = undefined
+                                    addOperationOption = {}
                                     ruleEdited = true
                                 } else {
                                     message.notify('请选择操作', message.warning)
