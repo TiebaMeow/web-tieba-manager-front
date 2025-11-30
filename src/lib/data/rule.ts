@@ -42,6 +42,16 @@ router.beforeEach(async (to, from) => {
     }
 })
 
+
+export interface ConditionOptionDesc {
+    type: 'input' | 'number' | 'checkbox'
+    label: string
+    key: string,
+    placeholder: string | null,
+    default: string | number | boolean | null,
+    extra: Record<string, string | number | boolean> | null
+}
+
 interface ConditionInfo {
     type: string
     name: string
@@ -49,6 +59,7 @@ interface ConditionInfo {
     description: string
     series: string,
     values: Record<string, string> | null
+    option_descs: Array<ConditionOptionDesc>
 }
 
 const conditionInfoList = ref<RefResponse<ConditionInfo[]>>(undefined)

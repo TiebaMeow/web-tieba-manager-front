@@ -218,7 +218,7 @@ const addOperationOption = ref<undefined | keyof typeof CUSTOM_OPERATION_OPTIONS
             <template v-if="activeEdit === 'condition'">
                 <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
                     <component
-                        :is="CONDITION_COMPONENTS[conditionInfoDict[condition.type].series as keyof typeof CONDITION_COMPONENTS]"
+                        :is="CONDITION_COMPONENTS[((conditionInfoDict[condition.type] && conditionInfoDict[condition.type].series) || 'unknown') as keyof typeof CONDITION_COMPONENTS]"
                         @change="ruleEdited = true" v-model="ruleDataCopy.conditions[seq]"
                         @delete="ruleDataCopy.conditions.splice(seq, 1)" />
                 </template>
