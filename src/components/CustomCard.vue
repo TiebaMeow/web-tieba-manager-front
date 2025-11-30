@@ -50,7 +50,6 @@ const emit = defineEmits<{
 
 .header {
     flex-shrink: 0;
-    width: 80px;
     align-items: center;
 }
 </style>
