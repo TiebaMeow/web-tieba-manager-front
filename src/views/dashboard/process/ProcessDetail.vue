@@ -37,7 +37,7 @@ interface RuleContext {
     whitelist: boolean
     result: boolean
     conditions: Array<number>,
-    failed_step: number | null
+    failed_steps: number | Array<number> | null
 }
 
 
@@ -71,6 +71,30 @@ async function fetchDetail(pid: number) {
 }
 fetchDetail(getPid(route));
 
+function styleDetermine(rule: RuleContext, rci: number): "success" | "danger" | "info" {
+    const failed_steps = rule.failed_steps;
+    if (failed_steps === null || failed_steps === undefined) {
+        return rule.result ? "success" : "info";
+    }
+    if (Array.isArray(failed_steps)) {
+        if (failed_steps.includes(rci)) {
+            return "danger";
+        } else if (rci < Math.min(...failed_steps)) {
+            return "success";
+        } else {
+            return "info";
+        }
+    } else {
+        if (rci < failed_steps) {
+            return "success";
+        } else if (rci === failed_steps) {
+            return "danger";
+        } else {
+            return "info";
+        }
+    }
+}
+
 const contexts = computed(() => {
     if (!detail.value) {
         return [];
@@ -88,13 +112,12 @@ const contexts = computed(() => {
                 }
                 const c = detail.value.conditions[ci];
                 const info = conditionInfoDict.value[c.type];
-                const failed_step = rule.failed_step || 0
                 return {
                     type: c.type,
                     name: info ? info.name : c.type,
                     context: c.context,
                     key: c.key,
-                    style: rule.result || rci < failed_step ? "success" : rci === failed_step ? "danger" : "info"
+                    style: styleDetermine(rule, rci)
                 };
             })
         }
