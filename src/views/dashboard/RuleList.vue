@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { getRules, setRules, canEdit, ruleEdited } from '@/lib/data/rule';
 import router from '@/router';
@@ -9,6 +9,7 @@ import { OPERATION_OPTIONS } from '@/lib/data/operation';
 
 const viewMode = getViewMode(600)
 const rules = getRules()
+const filterKeyword = ref('')
 
 function editRule(index: number) {
     router.push(`/rules/${index + 1}`)
@@ -83,9 +84,10 @@ function moveUpRule(index: number) {
                 <el-button type="success" @click="save">保存</el-button>
             </div>
             <el-divider v-else style="margin-bottom: 20px;"></el-divider>
+            <el-input v-model="filterKeyword" placeholder="筛选规则名称" style="margin-bottom: 10px;" clearable />
             <template v-if="currRuleLength">
                 <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(rules, index) in rules"
-                    v-show="rules.whitelist === whitelistMode" :key="index">
+                    v-show="rules.whitelist === whitelistMode && (!filterKeyword || rules.name.includes(filterKeyword))" :key="index">
                     <el-card style="flex-grow: 1;">
                         <template #header>
                             # {{ rules.name }}
