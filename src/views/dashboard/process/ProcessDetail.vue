@@ -37,7 +37,7 @@ interface RuleContext {
     whitelist: boolean
     result: boolean
     conditions: Array<number>,
-    failed_steps: number | Array<number> | null
+    step_status: number | Array<Array<number>> | null
 }
 
 
@@ -72,22 +72,22 @@ async function fetchDetail(pid: number) {
 fetchDetail(getPid(route));
 
 function styleDetermine(rule: RuleContext, rci: number): "success" | "danger" | "info" {
-    const failed_steps = rule.failed_steps;
-    if (failed_steps === null || failed_steps === undefined) {
+    const step_status = rule.step_status;
+    if (step_status === null || step_status === undefined) {
         return rule.result ? "success" : "info";
     }
-    if (Array.isArray(failed_steps)) {
-        if (failed_steps.includes(rci)) {
+    if (Array.isArray(step_status)) {
+        if (step_status[1].includes(rci)) {
             return "danger";
-        } else if (rci < Math.min(...failed_steps)) {
+        } else if (step_status[0].includes(rci)) {
             return "success";
         } else {
             return "info";
         }
     } else {
-        if (rci < failed_steps) {
+        if (rci < step_status) {
             return "success";
-        } else if (rci === failed_steps) {
+        } else if (rci === step_status) {
             return "danger";
         } else {
             return "info";
