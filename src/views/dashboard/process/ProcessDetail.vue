@@ -271,7 +271,7 @@ async function reprocess() {
         <div style="width: 100%">
             <el-tabs v-model="currRule" style="margin-top: 15px;">
                 <el-tab-pane v-for="({ rule, conditions }, rule_index) in contexts" :key="rule_index"
-                    :label="rule.name + (hitRuleIndex === rule_index ? '*' : '')" :name="rule.name">
+                    :label="rule.name + (rule.result ? '✅' : '❌') + (hitRuleIndex === rule_index ? '*' : '')" :name="rule.name">
                     <el-timeline style="margin-top: 15px;" class="process-timeline">
                         <el-timeline-item v-for="condition in conditions" :key="condition.type + condition.key"
                             :hollow="rule.whitelist" :type="condition.style">
@@ -286,7 +286,7 @@ async function reprocess() {
                                     <div v-if="condition.context === UNPROCESSED_TEXT"
                                         style="color: gray; display: flex; align-items: center;">
                                         <i>未处理，无法提供信息</i>
-                                        <el-tooltip content="为节省性能，匹配失败后的部分条件不会被处理" placement="top">
+                                        <el-tooltip content="为节省性能，匹配结果确定后不会处理后续条件" placement="top">
                                             <el-icon color="gray" style="margin-left: 10px;">
                                                 <i-ep-question-filled />
                                             </el-icon>
