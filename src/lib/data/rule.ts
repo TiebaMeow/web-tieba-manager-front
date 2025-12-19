@@ -171,6 +171,10 @@ interface Rule {
     whitelist: boolean
     operations: OperationGroup
     conditions: Condition[]
+    logic: {
+        advanced: boolean
+        expression: string
+    } | null
 }
 
 

@@ -76,6 +76,7 @@ function newRule(): boolean {
         last_modify: Math.floor(Date.now() / 1000),
         manual_confirm: false,
         force_record_context: false,
+        logic: null,
     }
     ruleEdited.value = true
     return true
@@ -107,10 +108,236 @@ async function getRuleCopy() {
 }
 getRuleCopy()
 
+const logicType = computed({
+    get() {
+        if (!ruleDataCopy.value) return 1
+        if (!ruleDataCopy.value.logic) return 1
+        if (ruleDataCopy.value.logic.advanced) return 3
+        return 2
+    },
+    set(val: number) {
+        if (!ruleDataCopy.value) return
+        if (val === 1) {
+            ruleDataCopy.value.logic = null
+        } else if (val === 2) {
+            const indices = ruleDataCopy.value.conditions.map((_, i) => i)
+            ruleDataCopy.value.logic = {
+                advanced: false,
+                expression: indices.join(' or ')
+            }
+        } else if (val === 3) {
+            if (!ruleDataCopy.value.logic) {
+                const indices = ruleDataCopy.value.conditions.map((_, i) => i)
+                ruleDataCopy.value.logic = {
+                    advanced: true,
+                    expression: indices.join(' or ')
+                }
+            } else {
+                ruleDataCopy.value.logic.advanced = true
+            }
+        }
+        ruleEdited.value = true
+    }
+})
+
+function getOperator(index: number): 'and' | 'or' {
+    if (!ruleDataCopy.value?.logic) return 'or'
+    const expr = ruleDataCopy.value.logic.expression
+    const regex = new RegExp(`\\b${index}\\b(.*?)\\b${index + 1}\\b`)
+    const match = expr.match(regex)
+    if (match) {
+        if (match[1].includes('and')) return 'and'
+        if (match[1].includes('or')) return 'or'
+    }
+    return 'or'
+}
+
+function toggleOperator(index: number) {
+    if (!ruleDataCopy.value?.logic) return
+    const currentOp = getOperator(index)
+    const newOp = currentOp === 'and' ? 'or' : 'and'
+
+    const conditions = ruleDataCopy.value.conditions
+    const ops: string[] = []
+    for (let i = 0; i < conditions.length - 1; i++) {
+        if (i === index) {
+            ops.push(newOp)
+        } else {
+            ops.push(getOperator(i))
+        }
+    }
+
+    let newExpr = '0'
+    for (let i = 0; i < ops.length; i++) {
+        newExpr += ` ${ops[i]} ${i + 1}`
+    }
+
+    ruleDataCopy.value.logic.expression = newExpr
+    ruleEdited.value = true
+}
+
+function validateInput(val: string) {
+    const valid = /^[0-9\s()andornornot]*$/.test(val)
+    if (!valid) {
+        ruleDataCopy.value!.logic!.expression = val.replace(/[^0-9\s()andornornot]/g, '')
+    }
+}
+
+function onAddCondition() {
+    if (addConditionOption.value.category && addConditionOption.value.type) {
+        const newIndex = ruleDataCopy.value!.conditions.length
+        ruleDataCopy.value!.conditions.push({
+            type: addConditionOption.value.type,
+            options: {},
+        })
+
+        if (ruleDataCopy.value?.logic) {
+            if (ruleDataCopy.value.logic.expression) {
+                ruleDataCopy.value.logic.expression += ` or ${newIndex}`
+            } else {
+                ruleDataCopy.value.logic.expression = `${newIndex}`
+            }
+        }
+
+        addCondition.value = false
+        addConditionOption.value = {};
+        ruleEdited.value = true
+    } else {
+        message.notify('请先选择规则类型和子类型', message.warning)
+    }
+}
+
+function onDeleteCondition(index: number) {
+    const logic = ruleDataCopy.value?.logic
+    if (logic) {
+        const expr = logic.expression
+        // 分词：按分隔符拆分，但保留分隔符
+        const tokens = expr.match(/(\(|\)|and|or|nor|not|\d+)/gi) || []
+
+        // 找到数字标记的索引
+        let tokenIndex = -1
+        for (let i = 0; i < tokens.length; i++) {
+            if (tokens[i] === index.toString()) {
+                tokenIndex = i
+                break
+            }
+        }
+
+        if (tokenIndex !== -1) {
+            const indicesToRemove = [tokenIndex]
+
+            // 1. 检查前面的 'not'
+            if (tokenIndex > 0 && tokens[tokenIndex - 1].toLowerCase() === 'not') {
+                indicesToRemove.push(tokenIndex - 1)
+            }
+
+            // 2. 检查运算符
+            // 我们需要在左侧或右侧找到最近的运算符，跳过可能已经标记的 'not'
+            const leftSearch = (indicesToRemove.includes(tokenIndex - 1) ? tokenIndex - 2 : tokenIndex - 1)
+            const rightSearch = tokenIndex + 1
+
+            let leftOpIndex = -1
+            let rightOpIndex = -1
+
+            if (leftSearch >= 0 && ['and', 'or', 'nor'].includes(tokens[leftSearch].toLowerCase())) {
+                leftOpIndex = leftSearch
+            }
+            if (rightSearch < tokens.length && ['and', 'or', 'nor'].includes(tokens[rightSearch].toLowerCase())) {
+                rightOpIndex = rightSearch
+            }
+
+            if (leftOpIndex !== -1 && rightOpIndex !== -1) {
+                // 都存在时，优先处理 AND
+                if (tokens[leftOpIndex].toLowerCase() === 'and') {
+                    indicesToRemove.push(leftOpIndex)
+                } else if (tokens[rightOpIndex].toLowerCase() === 'and') {
+                    indicesToRemove.push(rightOpIndex)
+                } else {
+                    // 如果都不是 AND（都是 OR/NOR），移除左边的
+                    indicesToRemove.push(leftOpIndex)
+                }
+            } else if (leftOpIndex !== -1) {
+                indicesToRemove.push(leftOpIndex)
+            } else if (rightOpIndex !== -1) {
+                indicesToRemove.push(rightOpIndex)
+            }
+
+            // 移除标记（先降序排序索引以安全删除）
+            indicesToRemove.sort((a, b) => b - a)
+            for (const idx of indicesToRemove) {
+                tokens.splice(idx, 1)
+            }
+
+            // 3. 检查 '( X )' -> 'X' 的简化情况
+            for (let i = 0; i < tokens.length - 2; i++) {
+                if (tokens[i] === '(' && tokens[i + 2] === ')' && /^\d+$/.test(tokens[i + 1])) {
+                    // 移除 '(' 和 ')'
+                    tokens.splice(i + 2, 1)
+                    tokens.splice(i, 1)
+                    i-- // 调整索引
+                }
+            }
+
+            // 4. 调整索引
+            for (let i = 0; i < tokens.length; i++) {
+                if (/^\d+$/.test(tokens[i])) {
+                    const val = parseInt(tokens[i])
+                    if (val > index) {
+                        tokens[i] = (val - 1).toString()
+                    }
+                }
+            }
+
+            logic.expression = tokens.join(' ')
+        }
+    }
+
+    ruleDataCopy.value!.conditions.splice(index, 1)
+    if (ruleDataCopy.value!.conditions.length === 0 && ruleDataCopy.value?.logic) {
+        ruleDataCopy.value.logic.expression = ''
+    }
+    ruleEdited.value = true
+}
+
+const conditionGroups = computed(() => {
+    if (!ruleDataCopy.value) return []
+    if (logicType.value !== 2) {
+        // 如果不是部分匹配，所有条件视为一个组，或者每个条件一个组，这里为了统一渲染，视为一个大组
+        // 但实际上 logicType !== 2 时我们不使用分组渲染逻辑，或者退化为简单列表
+        // 为了复用 template，我们可以返回 [[0], [1], [2]] (全部匹配) 或者 [[0, 1, 2]] (自定义)
+        // 但为了简单起见，我们在 template 里区分 logicType
+        return []
+    }
+
+    const groups: number[][] = []
+    let currentGroup: number[] = [0]
+    const conditions = ruleDataCopy.value.conditions
+
+    // 遍历连接符
+    // 逻辑是 (A and B) or (C and D)
+    // and 是组内连接，or 是组间连接
+    for (let i = 0; i < conditions.length - 1; i++) {
+        const op = getOperator(i)
+        if (op === 'and') {
+            currentGroup.push(i + 1)
+        } else {
+            groups.push(currentGroup)
+            currentGroup = [i + 1]
+        }
+    }
+    if (conditions.length > 0) {
+        groups.push(currentGroup)
+    }
+    return groups
+})
+
 function deleteAll() {
     if (activeEdit.value === 'condition') {
         message.confirm('即将删除所有条件', '提示', () => {
             ruleDataCopy.value!.conditions = [];
+            if (ruleDataCopy.value?.logic) {
+                ruleDataCopy.value.logic.expression = ''
+            }
             ruleEdited.value = true
         });
     } else if (activeEdit.value === 'operation' && ruleDataCopy.value?.operations === 'custom') {
@@ -200,6 +427,24 @@ watch(addOperation, (val) => {
                             :value="operation"></el-option>
                     </el-select>
                 </el-form-item>
+                <el-form-item label="逻辑关系" v-show="!ruleDataCopy.whitelist">
+                    <el-select v-model="logicType" :disabled="!canEdit">
+                        <el-option label="全部匹配" :value="1"></el-option>
+                        <el-option label="部分匹配" :value="2"></el-option>
+                        <el-option label="自定义表达式" :value="3"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="表达式" v-if="logicType === 3 && ruleDataCopy.logic" v-show="!ruleDataCopy.whitelist">
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <el-input v-model="ruleDataCopy.logic.expression" @input="validateInput"
+                            :disabled="!canEdit"></el-input>
+                        <el-tooltip content="支持 () and or nor not 和数字序号" placement="top">
+                            <el-icon color="gray" style="margin-left: 10px;">
+                                <i-ep-question-filled />
+                            </el-icon>
+                        </el-tooltip>
+                    </div>
+                </el-form-item>
             </el-form>
             <div class="config-bar" v-show="!ruleDataCopy.whitelist" style="margin-bottom: 0;">
                 <el-checkbox v-model="ruleDataCopy.manual_confirm" label="手动确认" :disabled="!canEdit"
@@ -230,13 +475,38 @@ watch(addOperation, (val) => {
                 </el-tabs>
             </div>
             <template v-if="activeEdit === 'condition'">
-                <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
-                    <component
-                        :is="hasOwn(CONDITION_COMPONENTS, conditionInfoDict[condition.type]?.series)
-                        ? CONDITION_COMPONENTS[conditionInfoDict[condition.type]?.series]
-                        : CONDITION_COMPONENTS.unknown"
-                        @change="ruleEdited = true" v-model="ruleDataCopy.conditions[seq]"
-                        @delete="ruleDataCopy.conditions.splice(seq, 1)" />
+                <template v-if="logicType === 2">
+                    <div v-for="(group, gIndex) in conditionGroups" :key="gIndex" class="condition-group-container">
+                        <div v-if="gIndex > 0" class="group-connector">
+                            <el-button size="small" @click="toggleOperator(group[0] - 1)"
+                                :disabled="!canEdit">或者</el-button>
+                        </div>
+                        <div class="condition-group">
+                            <div v-for="(cIndex, cInIndex) in group" :key="cIndex" class="condition-item-container">
+                                <div v-if="cInIndex > 0" class="item-connector">
+                                    <el-button size="small" @click="toggleOperator(cIndex - 1)"
+                                        :disabled="!canEdit">并且</el-button>
+                                </div>
+                                <component style="flex-grow: 1;" :is="hasOwn(CONDITION_COMPONENTS, conditionInfoDict[ruleDataCopy.conditions[cIndex].type]?.series)
+                                    ? CONDITION_COMPONENTS[conditionInfoDict[ruleDataCopy.conditions[cIndex].type]?.series]
+                                    : CONDITION_COMPONENTS.unknown" @change="ruleEdited = true"
+                                    v-model="ruleDataCopy.conditions[cIndex]" @delete="onDeleteCondition(cIndex)" />
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template v-else>
+                    <template v-for="(condition, seq) in ruleDataCopy.conditions" :key="seq">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div v-if="logicType === 3" style="margin-right: 10px; flex-shrink: 0; font-weight: bold;">
+                                #{{ seq }}
+                            </div>
+                            <component style="flex-grow: 1;" :is="hasOwn(CONDITION_COMPONENTS, conditionInfoDict[condition.type]?.series)
+                                ? CONDITION_COMPONENTS[conditionInfoDict[condition.type]?.series]
+                                : CONDITION_COMPONENTS.unknown" @change="ruleEdited = true"
+                                v-model="ruleDataCopy.conditions[seq]" @delete="onDeleteCondition(seq)" />
+                        </div>
+                    </template>
                 </template>
                 <el-card>
                     <div v-if="addCondition" class="center add-slot">
@@ -259,19 +529,7 @@ watch(addOperation, (val) => {
                             <el-select v-else disabled :modelValue="1">
                                 <el-option label="-" :value="1"></el-option>
                             </el-select>
-                            <el-button type="primary" style="margin-left: 10px;" @click="() => {
-                                if (addConditionOption.category && addConditionOption.type) {
-                                    ruleDataCopy!.conditions.push({
-                                        type: addConditionOption.type,
-                                        options: {},
-                                    })
-                                    addCondition = false
-                                    addConditionOption = {};
-                                    ruleEdited = true
-                                } else {
-                                    message.notify('请先选择规则类型和子类型', message.warning)
-                                }
-                            }">添加</el-button>
+                            <el-button type="primary" style="margin-left: 10px;" @click="onAddCondition">添加</el-button>
                         </div>
                     </div>
                     <div v-else class="center add-slot">
@@ -364,6 +622,51 @@ watch(addOperation, (val) => {
 
 .add-slot h3 {
     margin: 0 0 20px 0
+}
+
+.condition-group-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-connector {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    position: relative;
+}
+
+/* 竖线连接效果 */
+.group-connector::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    /* 按钮宽度的一半左右 */
+    top: -10px;
+    bottom: 100%;
+    width: 2px;
+    background-color: var(--el-border-color);
+}
+
+.condition-group {
+    border-left: 4px solid var(--el-border-color-darker);
+    padding-left: 15px;
+    margin-left: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: var(--el-fill-color-light);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 10px;
+}
+
+.condition-item-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.item-connector {
+    margin-bottom: 10px;
+    margin-top: 5px;
 }
 </style>
 
