@@ -177,9 +177,9 @@ function toggleOperator(index: number) {
 }
 
 function validateInput(val: string) {
-    const valid = /^[0-9\s()andornornot]*$/.test(val)
+    const valid = /^[0-9\s()andort]*$/.test(val)
     if (!valid) {
-        ruleDataCopy.value!.logic!.expression = val.replace(/[^0-9\s()andornornot]/g, '')
+        ruleDataCopy.value!.logic!.expression = val.replace(/[^0-9\s()andort]/g, '')
     }
 }
 
@@ -212,7 +212,7 @@ function onDeleteCondition(index: number) {
     if (logic) {
         const expr = logic.expression
         // 分词：按分隔符拆分，但保留分隔符
-        const tokens = expr.match(/(\(|\)|and|or|nor|not|\d+)/gi) || []
+        const tokens = expr.match(/(\(|\)|and|or|nor|not|\d+)/g) || []
 
         // 找到数字标记的索引
         let tokenIndex = -1
@@ -302,10 +302,8 @@ function onDeleteCondition(index: number) {
 const conditionGroups = computed(() => {
     if (!ruleDataCopy.value) return []
     if (logicType.value !== 2) {
-        // 如果不是部分匹配，所有条件视为一个组，或者每个条件一个组，这里为了统一渲染，视为一个大组
-        // 但实际上 logicType !== 2 时我们不使用分组渲染逻辑，或者退化为简单列表
-        // 为了复用 template，我们可以返回 [[0], [1], [2]] (全部匹配) 或者 [[0, 1, 2]] (自定义)
-        // 但为了简单起见，我们在 template 里区分 logicType
+        // 仅在 logicType === 2（部分匹配）时才使用条件分组；其他类型下 template 不依赖 conditionGroups，
+        // 因此这里直接返回空数组，由渲染逻辑根据 logicType 走简单列表分支。
         return []
     }
 

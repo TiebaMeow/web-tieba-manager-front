@@ -39,7 +39,7 @@ const searchResult = ref<RefResponse<{
         page_count: number
     },
     data: Array<{
-        result_rule: string
+        result_rule: string | null
         is_whitelist: boolean
         process_time: number
         content: Content
