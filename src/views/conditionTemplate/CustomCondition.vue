@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watchEffect } from 'vue';
+import { watchEffect, computed } from 'vue';
 import { conditionInfoDict, type Condition, canEdit } from '@/lib/data/rule';
 import CustomCard from '@/components/CustomCard.vue';
 
@@ -14,7 +14,10 @@ const emit = defineEmits<{
     change: [void]
 }>()
 
-const optionDescs = data.value ? conditionInfoDict.value[data.value?.type]?.option_descs || [] : []
+const optionDescs = computed(() => {
+    if (!data.value) return [];
+    return conditionInfoDict.value[data.value.type]?.option_descs || [];
+});
 
 
 watchEffect(() => {
@@ -36,7 +39,7 @@ watchEffect(() => {
             <el-form-item v-for="desc in optionDescs" :label="desc.label" :key="desc.key">
                 <el-input v-if="desc.type === 'input'" :placeholder="desc.placeholder || ''"
                     v-model="data.options[desc.key]" @change="emit('change')" :disabled="!canEdit"
-                    :show-password="desc.extra?.password" :type="desc.extra?.textarea?'textarea':'text'"></el-input>
+                    :show-password="desc.extra?.password" :type="desc.extra?.textarea ? 'textarea' : 'text'"></el-input>
                 <el-input-number v-else-if="desc.type === 'number'" :placeholder="desc.placeholder || ''"
                     v-model.number="data.options[desc.key]" @change="emit('change')"
                     :disabled="!canEdit"></el-input-number>

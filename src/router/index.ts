@@ -17,7 +17,6 @@ export const processDashboardRoutes: DashboardRouteRecordRaw[] = [
         meta: {
             hide: true
         },
-        // TODO 删去不必要的组件加载
         component: () => import('../views/dashboard/process/ProcessIndex.vue')
     },
     {

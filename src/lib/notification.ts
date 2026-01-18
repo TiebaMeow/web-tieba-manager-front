@@ -2,7 +2,7 @@ export async function requestBrowserNotification(): Promise<number> {
     /*
     请求浏览器通知权限
     返回值:
-    0: 成功显示通知
+    0: 权限已授予
     -1: 浏览器不支持 Notification API
     -2: 用户拒绝了通知权限
     */

@@ -97,7 +97,7 @@ function truncateText(text: string, maxLen: number = MAX_PREVIEW_LENGTH) {
 
 .body {
     width: 100%;
-    display: flex
+    display: flex;
 }
 
 .avatar-container {
