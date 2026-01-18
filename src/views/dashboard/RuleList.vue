@@ -86,15 +86,15 @@ function moveUpRule(index: number) {
             <el-divider v-else style="margin-bottom: 20px;"></el-divider>
             <el-input v-model="filterKeyword" placeholder="筛选规则名称" style="margin-bottom: 10px;" clearable />
             <template v-if="currRuleLength">
-                <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(rules, index) in rules"
-                    v-show="rules.whitelist === whitelistMode && (!filterKeyword || rules.name.includes(filterKeyword))" :key="index">
+                <div style="width: 100%; display: flex; margin-bottom: 30px;" v-for="(rule, index) in rules"
+                    v-show="rule.whitelist === whitelistMode && (!filterKeyword || rule.name.includes(filterKeyword))" :key="index">
                     <el-card style="flex-grow: 1;">
                         <template #header>
-                            # {{ rules.name }}
+                            # {{ rule.name }}
                         </template>
                         <div style="display: flex;" v-if="viewMode === 'desktop'">
                             <div style="width: 110px;">
-                                <el-statistic :value="rules.conditions.length">
+                                <el-statistic :value="rule.conditions.length">
                                     <template #title>
                                         条件数
                                     </template>
@@ -102,10 +102,10 @@ function moveUpRule(index: number) {
                             </div>
                             <div style="width: 110px;" v-show="!whitelistMode">
                                 <custom-statistic title="操作"
-                                    :value="Array.isArray(rules.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rules.operations]" />
+                                    :value="Array.isArray(rule.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rule.operations as keyof typeof OPERATION_OPTIONS]" />
                             </div>
                             <div style="width: 110px;" v-show="!whitelistMode">
-                                <custom-statistic title="手动确认" :value="rules.manual_confirm ? '是' : '否'" />
+                                <custom-statistic title="手动确认" :value="rule.manual_confirm ? '是' : '否'" />
                             </div>
                             <div style="flex-grow: 1; display: flex; justify-content: flex-end; align-items: flex-end;">
                                 <template v-if="canEdit">
@@ -121,7 +121,7 @@ function moveUpRule(index: number) {
                         <div v-else>
                             <div style="width: 100%; display: flex; margin-bottom: 20px;">
                                 <div style="width: 33%;">
-                                    <el-statistic :value="rules.conditions.length">
+                                    <el-statistic :value="rule.conditions.length">
                                         <template #title>
                                             条件数
                                         </template>
@@ -129,10 +129,10 @@ function moveUpRule(index: number) {
                                 </div>
                                 <div style="width: 33%" v-show="!whitelistMode">
                                     <custom-statistic title="操作"
-                                        :value="Array.isArray(rules.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rules.operations]" />
+                                        :value="Array.isArray(rule.operations) ? OPERATION_OPTIONS.custom : OPERATION_OPTIONS[rule.operations as keyof typeof OPERATION_OPTIONS]" />
                                 </div>
                                 <div style="width: 33%" v-show="!whitelistMode">
-                                    <custom-statistic title="手动确认" :value="rules.manual_confirm ? '是' : '否'" />
+                                    <custom-statistic title="手动确认" :value="rule.manual_confirm ? '是' : '否'" />
                                 </div>
 
                             </div>
