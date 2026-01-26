@@ -154,19 +154,19 @@ onUnmounted(SwitchTokenEvent.on(() => {
 
 const showReprocessDialog = ref(false);
 const executeReprocessOptions = ref<{
-    execute_operation: boolean,
-    execute_confirm: boolean
+    execute_operations: boolean,
+    need_confirm: boolean
 }>({
-    execute_operation: false,
-    execute_confirm: false
+    execute_operations: false,
+    need_confirm: true
 });
 const reprocessResult = ref<string | null>(null);
 const reprocessStatus = ref<'idle' | 'processing' | 'done' | 'failed'>('idle');
 
 function openReprocessDialog() {
     executeReprocessOptions.value = {
-        execute_operation: false,
-        execute_confirm: false
+        execute_operations: false,
+        need_confirm: true
     };
     reprocessResult.value = null;
     reprocessStatus.value = 'idle';
@@ -186,8 +186,8 @@ async function reprocess() {
             url: '/api/process/reprocess',
             data: {
                 pid: detail.value.content.pid,
-                execute_operation: executeReprocessOptions.value.execute_operation,
-                execute_confirm: executeReprocessOptions.value.execute_confirm,
+                execute_operations: executeReprocessOptions.value.execute_operations,
+                need_confirm: executeReprocessOptions.value.need_confirm,
             }
         })
         if (response.status === 200 && response.data) {
@@ -227,11 +227,11 @@ async function reprocess() {
     <el-dialog title="重新处理" v-model="showReprocessDialog" :width="400">
         <span>确认要重新处理该内容吗？</span>
         <div style="margin-top: 10px;">
-            <el-checkbox v-model="executeReprocessOptions.execute_operation">
+            <el-checkbox v-model="executeReprocessOptions.execute_operations">
                 执行处理操作
             </el-checkbox>
-            <el-checkbox v-model="executeReprocessOptions.execute_confirm">
-                执行前确认
+            <el-checkbox v-model="executeReprocessOptions.need_confirm" :disabled="!executeReprocessOptions.execute_operations">
+                强制确认
             </el-checkbox>
         </div>
         <div style="margin-top: 20px;" v-if="reprocessStatus !== 'idle'">
